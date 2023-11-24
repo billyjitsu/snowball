@@ -10,10 +10,18 @@ import "@openzeppelin/contracts/utils/Strings.sol";
  */
 contract SnowDay is ERC1155Burnable, Ownable {
 
-    event LevelUp(address indexed account, uint256 level);
+    event NewPlayer(address indexed account, uint256 level);
     // event Miaowed(address indexed attacker, address indexed victim, uint256 level);
 
     bool public isGamePaused = false;
+
+    struct NFTData {
+        uint256 health;
+        string imageURI;
+    }
+
+    mapping(uint256 => NFTData) public tokenData;
+
 
     constructor(string memory _uri) ERC1155(_uri)
     {}
@@ -22,8 +30,12 @@ contract SnowDay is ERC1155Burnable, Ownable {
         require(isGamePaused == false, "GAME_PAUSED");
         require(balanceOf(msg.sender, 1) == 0, "Already has a penguin");
         _mint(msg.sender, 1, 1, "");
+        tokenData[1] = NFTData({
+        health: 100,
+        imageURI: "initialURI"
+        });
         // claiming a Penguine enters the game at level 1
-        emit LevelUp(msg.sender, 1);
+        emit NewPlayer(msg.sender, 1);
     }
 
     function killPenguin(address _enemy) external {
@@ -37,8 +49,20 @@ contract SnowDay is ERC1155Burnable, Ownable {
         require(isGamePaused == false, "GAME_PAUSED");
         require(balanceOf(msg.sender, 1) > 0, "You need a penguin to throw a snowball!");
         require(balanceOf(_victim, 1) > 0, "Enemy needs a penguin to hit!");
-        _burn(msg.sender, 1, 1);
-        _burn(_victim, 1, 1);
+        hit(_victim);  
+    }
+
+    function hit(address _victim) internal {
+        require(isGamePaused == false, "GAME_PAUSED");
+        require(balanceOf(msg.sender, 1) > 0, "You need a penguin to hit!");
+        uint256 random = uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender, _victim))) % 100;
+        if(random < 50) {
+            // hit
+            // _burn(_victim, 1, 1);
+        } else {
+            // miss
+            // _burn(msg.sender, 1, 1);
+        }  
     }
 
     /** 
@@ -112,6 +136,19 @@ contract SnowDay is ERC1155Burnable, Ownable {
     //     // Badge of honor: 1 point
     //     return balanceOf[player][0] + 2 * balanceOf[player][1] + 3 * balanceOf[player][2] + balanceOf[player][3];
     // }
+
+    // URI overide for number schemes
+    function uri(uint256 _tokenId)
+        public
+        view
+        override
+        returns (string memory)
+    {
+        return
+            string(
+                abi.encodePacked("imageURI", Strings.toString(_tokenId), ".json")
+            );
+    }
 
     function name() public pure returns (string memory) {
         return "Snow Day";
