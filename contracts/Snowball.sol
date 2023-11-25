@@ -17,7 +17,6 @@ contract SnowDay is ERC1155Burnable, Ownable {
 
     struct NFTData {
         uint256 health;
-        string imageURI;
     }
 
     mapping(uint256 => NFTData) public tokenData;
@@ -31,8 +30,7 @@ contract SnowDay is ERC1155Burnable, Ownable {
         require(balanceOf(msg.sender, 1) == 0, "Already has a penguin");
         _mint(msg.sender, 1, 1, "");
         tokenData[1] = NFTData({
-        health: 100,
-        imageURI: "initialURI"
+        health: 100
         });
         // claiming a Penguine enters the game at level 1
         emit NewPlayer(msg.sender, 1);
