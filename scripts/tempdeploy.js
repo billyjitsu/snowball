@@ -5,12 +5,7 @@ const main = async () => {
       ["https://i.imgur.com/DYy7js6.jpeg", 
       "https://i.imgur.com/lgPFnUw.jpeg", 
       "https://i.imgur.com/yRMhDS0.jpeg"],
-      [100, 200, 300],                   
-      [100, 50, 25],                      
-      "Ultron",               
-      "https://i.imgur.com/yyjoUG8.jpeg",   
-      10000,                              
-      50                                  
+      [100, 200, 300],                                                
     );
     await gameContract.deployed();
     console.log("Contract deployed to:", gameContract.address);
