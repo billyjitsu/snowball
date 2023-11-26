@@ -21,7 +21,13 @@ import {
       const [owner, otherAccount] = await ethers.getSigners();
   
       const TokenEx = await ethers.getContractFactory("SnowDay");
-      const tokenEx = await TokenEx.deploy("string");
+      const tokenEx = await TokenEx.deploy(
+        ["Cap America", "Hulk", "Witch"],
+        ["https://i.imgur.com/DYy7js6.jpeg", 
+        "https://i.imgur.com/lgPFnUw.jpeg", 
+        "https://i.imgur.com/yRMhDS0.jpeg"],
+        [100, 200, 300],                                                
+      );
   
       await tokenEx.waitForDeployment();
   
@@ -39,25 +45,39 @@ import {
     describe("Claim Penguins", function () {
       it("Mint Pengu", async function () {
         const { tokenEx, owner, otherAccount, timestamp } = await loadFixture(deployBefore);
-        await tokenEx.claimPenguin();
-        await tokenEx.connect(otherAccount).claimPenguin();
-        await expect(tokenEx.connect(otherAccount).claimPenguin()).to.be.revertedWith('Already has a penguin');
+        await tokenEx.claimPenguin(0);
+        await tokenEx.connect(otherAccount).claimPenguin(1);
+        await expect(tokenEx.connect(otherAccount).claimPenguin(1)).to.be.revertedWith('Already has a penguin');
 
-        expect(await tokenEx.balanceOf(owner.address, 1)).to.equal(1);
-        expect(await tokenEx.balanceOf(otherAccount.address, 1)).to.equal(1);
+        expect(await tokenEx.balanceOf(owner.address)).to.equal(1);
+        expect(await tokenEx.balanceOf(otherAccount.address)).to.equal(1);
       });
 
-      it("Burn Pengu", async function () {
+      it("Throw Snowball", async function () {
         const { tokenEx, owner, otherAccount, timestamp } = await loadFixture(deployBefore);
-        await tokenEx.claimPenguin();
-        await tokenEx.connect(otherAccount).claimPenguin();
+        await tokenEx.claimPenguin(0);
+        await tokenEx.connect(otherAccount).claimPenguin(1);
         
-        await tokenEx.connect(otherAccount).killPenguin(owner.address);
-        expect(await tokenEx.balanceOf(owner.address, 1)).to.equal(0);
-        await tokenEx.claimPenguin();
+        for (let i = 0; i < 9; i++) {
+          await tokenEx.throwSnowball(otherAccount.address);
+        }
+      });
+
+      it("Names", async function () {
+        const { tokenEx, owner, otherAccount, timestamp } = await loadFixture(deployBefore);
+        await tokenEx.claimPenguin(0);
+        await tokenEx.connect(otherAccount).claimPenguin(1);
+
+        await tokenEx.updateCharacterName(2, "Billy");
+        await tokenEx.updateCharacterImageURI(2, "new string");
+        await tokenEx.updateCharacterHp(2, 1000);
+        
+        let names = await tokenEx.getAllDefaultCharacters();
+        console.log(names);
       });
       
     });
     
+  
   });
   

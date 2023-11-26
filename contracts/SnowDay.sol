@@ -1,15 +1,14 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.10;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "hardhat/console.sol";
 import "./lib/Base64.sol";
 
-contract Game is ERC721{
-  // We'll hold our character's attributes in a struct. Feel free to add
-  // whatever you'd like as an attribute! (ex. defense, crit chance, etc).
+contract SnowDay is ERC721, Ownable{
+  
   struct CharacterAttributes {
     uint characterIndex;
     string name;
@@ -18,13 +17,11 @@ contract Game is ERC721{
     uint maxHp;
   }
 
-  uint public nextCharacterId = 1;
+  uint public nextTokenId = 1;
+  bool public isGamePaused = false;
 
-//  using Counters for Counters.Counter;
-//  Counters.Counter private _tokenIds;
   // A lil array to help us hold the default data for our characters.
   // This will be helpful when we mint new characters and need to know
-  // things like their HP, AD, etc.
   CharacterAttributes[] defaultCharacters;
 
   // We create a mapping from the nft's tokenId => that NFTs attributes.
@@ -35,7 +32,7 @@ contract Game is ERC721{
 
   //events
   event CharacterNFTMinted(address sender, uint256 tokenId, uint256 characterIndex);
-  event AttackComplete(uint newBossHp, uint newPlayerHp);
+  event AttackComplete(uint atkAmount, uint playerHp);
 
   // Data passed in to the contract when it's first created initializing the characters.
   // We're going to actually pass these values in from from run.js.
@@ -43,7 +40,7 @@ contract Game is ERC721{
     string[] memory characterNames,
     string[] memory characterImageURIs,
     uint[] memory characterHp
-  ) ERC721("Heroes", "HERO")
+  ) ERC721("Snowday", "PPS")
   {
     
     // Loop through all the characters, and save their values in our contract so
@@ -60,38 +57,66 @@ contract Game is ERC721{
       CharacterAttributes memory c = defaultCharacters[i];
       console.log("Done initializing %s w/ HP %s, img %s", c.name, c.hp, c.imageURI);
     }
-     //placed here to start value at 1 instead of 0
-  //  _tokenIds.increment();
   }
 
-  function mintCharacterNFT(uint _characterIndex) external {
-    // Get current tokenId (starts at 1 since we incremented in the constructor).
-   // uint256 newItemId = _tokenIds.current();
+  function claimPenguin(uint _characterIndex) external {
+    require(isGamePaused == false, "GAME_PAUSED");
+    require( balanceOf(msg.sender) == 0, "Already has a penguin" );
+  
+    _mint(msg.sender, nextTokenId);
 
-    // The magical function! Assigns the tokenId to the caller's wallet address.
- //   _safeMint(msg.sender, newItemId);
+    // We map the tokenId => their character attributes. 
+    nftHolderAttributes[nextTokenId] = CharacterAttributes({
+      characterIndex: _characterIndex,
+      name: defaultCharacters[_characterIndex].name,
+      imageURI: defaultCharacters[_characterIndex].imageURI,
+      hp: defaultCharacters[_characterIndex].hp,
+      maxHp: defaultCharacters[_characterIndex].hp
+    });
 
-    // We map the tokenId => their character attributes. More on this in
-    // the lesson below.
-    // nftHolderAttributes[newItemId] = CharacterAttributes({
-    //   characterIndex: _characterIndex,
-    //   name: defaultCharacters[_characterIndex].name,
-    //   imageURI: defaultCharacters[_characterIndex].imageURI,
-    //   hp: defaultCharacters[_characterIndex].hp,
-    //   maxHp: defaultCharacters[_characterIndex].hp,
-    //   attackDamage: defaultCharacters[_characterIndex].attackDamage
-    // });
-
- //   console.log("Minted NFT w/ tokenId %s and characterIndex %s", newItemId, _characterIndex);
+   // console.log("Minted NFT w/ tokenId %s and characterIndex %s", nextTokenId, _characterIndex);
     
     // Keep an easy way to see who owns what NFT.
-  //  nftHolders[msg.sender] = newItemId;
+    nftHolders[msg.sender] = nextTokenId;
 
-    // Increment the tokenId for the next person that uses it.
-  //  _tokenIds.increment();
+    nextTokenId++;
 
     //emit event
- //   emit CharacterNFTMinted(msg.sender, newItemId, _characterIndex);
+   emit CharacterNFTMinted(msg.sender, nextTokenId, _characterIndex);
+  }
+
+  function throwSnowball(address _victim) external {
+        require(isGamePaused == false, "GAME_PAUSED");
+        require(balanceOf(msg.sender) > 0, "You need a penguin to throw a snowball!");
+        require(balanceOf(_victim) > 0, "Enemy needs a penguin to hit!");
+        hit(_victim);  
+  }
+
+  function hit(address _victim) internal {
+        require(isGamePaused == false, "GAME_PAUSED");
+        require(balanceOf(_victim) > 0, "You need a penguin to hit!");
+
+        uint256 nftTokenIdOfPlayer = nftHolders[_victim];
+        CharacterAttributes storage player = nftHolderAttributes[nftTokenIdOfPlayer];
+
+        // Make sure the player has more than 0 HP.
+        require(player.hp > 0, "Error: Character must have HP to attack boss.");
+
+        uint256 random = uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender, _victim))) % 100;
+        if(random < 50) {
+          if(random > player.hp) {
+            _burn(nftTokenIdOfPlayer);
+            console.log("Player has been burned");
+            console.log("Balance fo Victim: %s", balanceOf(_victim));
+          } else {
+            // hit
+            player.hp = player.hp - random;
+            console.log("Player attacked enemy. New Enemy hp is: %s\n", player.hp);
+          }
+        } else {
+          console.log("Missed");
+            // miss
+        }  
   }
 
 
@@ -120,33 +145,6 @@ contract Game is ERC721{
    return output;
   }
 
-    // function attackBoss() public {
-    //     // Get the state of the player's NFT.
-    //     uint256 nftTokenIdOfPlayer = nftHolders[msg.sender];
-    //     CharacterAttributes storage player = nftHolderAttributes[nftTokenIdOfPlayer];  //storage used to make sure its global on NFT , not the function
-    //     console.log("\nPlayer w/ character %s about to attack. Has %s HP and %s AD", player.name, player.hp, player.attackDamage);
-    //     console.log("Boss %s has %s HP and %s AD", bigBoss.name, bigBoss.hp, bigBoss.attackDamage);
-    //     // Make sure the player has more than 0 HP.
-    //     require(player.hp > 0, "Error: Character must have HP to attack boss.");
-    //     // Make sure the boss has more than 0 HP.
-    //     require(bigBoss.hp > 0, "Error: Boss must have HP to be attacked");
-    //     // Allow player to attack boss.
-    //     if(bigBoss.hp < player.attackDamage) {
-    //         bigBoss.hp = 0;
-    //     } else {
-    //         bigBoss.hp = bigBoss.hp - player.attackDamage;
-    //     }
-    //     // Allow boss to attack player.
-    //     if (player.hp < bigBoss.attackDamage) {
-    //          player.hp = 0;
-    //     } else {
-    //         player.hp = player.hp - bigBoss.attackDamage;
-    //     }
-    //     console.log("Boss attacked player. New Player hp is: %s\n", player.hp);
-
-    //     //emit event
-    //     emit AttackComplete(bigBoss.hp, player.hp);
-    // }
 
     function checkIfUserHasNFT() public view returns (CharacterAttributes memory) {
         // Get the token id of wallet
@@ -164,6 +162,37 @@ contract Game is ERC721{
 
     function getAllDefaultCharacters() public view returns (CharacterAttributes[] memory) {
      return defaultCharacters;
+    }
+
+    function updateCharacterName(uint256 _characterIndex, string memory _newName) external {
+        defaultCharacters[_characterIndex].name = _newName;
+    }
+
+    function updateCharacterImageURI(uint256 _characterIndex, string memory _newImageURI) external onlyOwner {
+        defaultCharacters[_characterIndex].imageURI = _newImageURI;
+    }
+
+    function updateCharacterHp(uint256 _characterIndex, uint256 _newHp) external onlyOwner {
+        defaultCharacters[_characterIndex].maxHp = _newHp;
+    }
+
+     /** 
+     * @notice Lets the owner restart the game
+     */
+    function startGame() external onlyOwner{
+        isGamePaused = false;
+    }
+
+    /** 
+     * @notice Lets the owner pause the game
+     */
+    function stopGame() external onlyOwner{
+        isGamePaused = true;
+    }
+
+    modifier gameNotPaused() {
+        require(!isGamePaused, "Game is paused");
+        _;
     }
 
 }

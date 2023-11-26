@@ -7,8 +7,9 @@ const main = async () => {
       "https://i.imgur.com/yRMhDS0.jpeg"],
       [100, 200, 300],                                                
     );
-    await gameContract.deployed();
-    console.log("Contract deployed to:", gameContract.address);
+    // await gameContract.deployed();
+    await gameContract.waitForDeployment();
+    console.log(`Contract deployed to:, ${gameContract.target}`);
   
     /*
     let txn;
