@@ -71,6 +71,8 @@ import {
         await tokenEx.updateCharacterName(2, "Billy");
         await tokenEx.updateCharacterImageURI(2, "new string");
         await tokenEx.updateCharacterHp(2, 1000);
+
+        await tokenEx.addCharacter("new name", "new string", 2000);
         
         let names = await tokenEx.getAllDefaultCharacters();
         console.log(names);

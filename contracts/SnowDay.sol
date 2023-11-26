@@ -164,6 +164,16 @@ contract SnowDay is ERC721, Ownable{
      return defaultCharacters;
     }
 
+    function addCharacter(string memory _name, string memory _imageURI, uint256 _hp) external onlyOwner {
+        defaultCharacters.push(CharacterAttributes({
+            characterIndex: defaultCharacters.length,
+            name: _name,
+            imageURI: _imageURI,
+            hp: _hp,
+            maxHp: _hp
+        }));
+    }
+
     function updateCharacterName(uint256 _characterIndex, string memory _newName) external {
         defaultCharacters[_characterIndex].name = _newName;
     }
