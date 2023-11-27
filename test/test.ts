@@ -75,7 +75,7 @@ import {
         await tokenEx.addCharacter("new name", "new string", 2000);
         
         let names = await tokenEx.getAllDefaultCharacters();
-        console.log(names);
+       // console.log(names);
       });
       
     });

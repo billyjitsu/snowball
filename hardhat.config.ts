@@ -1,5 +1,6 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
+import "hardhat-gas-reporter"
 require('dotenv').config();
 
 
@@ -46,6 +47,10 @@ apiKey: process.env.ETHERSCAN_API_KEY || ""
 },
 
 sourcify: {
+  enabled: true
+},
+
+gasReporter: {
   enabled: true
 }
 };
