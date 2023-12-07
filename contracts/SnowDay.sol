@@ -17,8 +17,8 @@ contract SnowDay is ERC721, Ownable {
         uint256 attackDamage;
         uint256 defense;
         uint256 evade;
-        //uint256 level;
     }
+    //uint256 level;
 
     uint256 public nextTokenId = 1;
     bool public isGamePaused = false;
@@ -39,7 +39,14 @@ contract SnowDay is ERC721, Ownable {
 
     // Data passed in to the contract when it's first created initializing the characters.
     // We're going to actually pass these values in from from run.js.
-    constructor(string[] memory characterNames, string[] memory characterImageURIs, uint256[] memory characterHp, uint256[] memory characterAttack, uint256[] memory characterDefense, uint256[] memory characterEvade) ERC721("Snowday", "PPS"){
+    constructor(
+        string[] memory characterNames,
+        string[] memory characterImageURIs,
+        uint256[] memory characterHp,
+        uint256[] memory characterAttack,
+        uint256[] memory characterDefense,
+        uint256[] memory characterEvade
+    ) ERC721("Snowday", "PPS") {
         // Loop through all the characters, and save their values in our contract so
         // we can use them later when we mint our NFTs.
         for (uint256 i = 0; i < characterNames.length; i += 1) {
@@ -94,6 +101,7 @@ contract SnowDay is ERC721, Ownable {
         require(isGamePaused == false, "GAME_PAUSED");
         require(balanceOf(msg.sender) > 0, "You need a penguin to throw a snowball!");
         require(balanceOf(_victim) > 0, "Enemy needs a penguin to hit!");
+        //request the number
         hit(_victim, msg.sender);
     }
 
@@ -112,20 +120,37 @@ contract SnowDay is ERC721, Ownable {
         //random number between 0 and 99
         uint256 random = uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender, _victim))) % 100;
 
-        if (random < 50) {
-            if (random > player.hp) {
-                _burn(nftTokenIdOfPlayer);
-                console.log("Player has been burned");
-                console.log("Balance fo Victim: %s", balanceOf(_victim));
-            } else {
-                // hit
-                player.hp = player.hp - random;
-                console.log("Player attacked enemy. New Enemy hp is: %s\n", player.hp);
-            }
-        } else {
-            console.log("Missed");
-            // miss
+        // Adjust the hit chance based on evade
+        if (random > (50 - player.evade)) {
+            console.log("Missed due to evasion");
+            return; // attack missed
         }
+
+        // Calculate potential damage
+        uint256 potentialDamage = random + attacker.attackDamage - player.defense;
+        if (potentialDamage > player.hp) {
+            _burn(nftTokenIdOfPlayer);
+            console.log("Player has been burned");
+            console.log("Balance of Victim: %s", balanceOf(_victim));
+        } else {
+            player.hp = player.hp - potentialDamage;
+            console.log("Player attacked enemy. New Enemy hp is: %s\n", player.hp);
+        }
+
+        // if (random < 50) {
+        //     if (random > player.hp) {
+        //         _burn(nftTokenIdOfPlayer);
+        //         console.log("Player has been burned");
+        //         console.log("Balance fo Victim: %s", balanceOf(_victim));
+        //     } else {
+        //         // hit
+        //         player.hp = player.hp - random;
+        //         console.log("Player attacked enemy. New Enemy hp is: %s\n", player.hp);
+        //     }
+        // } else {
+        //     console.log("Missed");
+        //     // miss
+        // }
     }
 
     function tokenURI(uint256 _tokenId) public view override returns (string memory) {
@@ -184,7 +209,14 @@ contract SnowDay is ERC721, Ownable {
         return defaultCharacters;
     }
 
-    function addCharacter(string memory _name, string memory _imageURI, uint256 _hp, uint256 _attack, uint256 _defense, uint256  _evade) external onlyOwner {
+    function addCharacter(
+        string memory _name,
+        string memory _imageURI,
+        uint256 _hp,
+        uint256 _attack,
+        uint256 _defense,
+        uint256 _evade
+    ) external onlyOwner {
         defaultCharacters.push(
             CharacterAttributes({
                 characterIndex: defaultCharacters.length,
@@ -217,6 +249,10 @@ contract SnowDay is ERC721, Ownable {
 
     function updateCharacterDefense(uint256 _characterIndex, uint256 _newDefense) external onlyOwner {
         defaultCharacters[_characterIndex].defense = _newDefense;
+    }
+
+    function updateCharacterEvade(uint256 _characterIndex, uint256 _newEvade) external onlyOwner {
+        defaultCharacters[_characterIndex].evade = _newEvade;
     }
 
     /**

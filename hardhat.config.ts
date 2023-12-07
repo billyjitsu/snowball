@@ -40,14 +40,14 @@ networks: {
     // gas: 200000000,
     // gasPrice: 100000000000,
   },
-  mantle: {
-    url: "https://rpc.mantle.xyz", //mainnet
-    accounts: [process.env.ACCOUNT_PRIVATE_KEY ?? ''],
-    },
-    mantleTest: {
-    url: "https://rpc.testnet.mantle.xyz", // testnet
-    accounts: [process.env.ACCOUNT_PRIVATE_KEY ?? '']
-    }
+  // mantle: {
+  //   url: "https://rpc.mantle.xyz", //mainnet
+  //   accounts: [process.env.ACCOUNT_PRIVATE_KEY ?? ''],
+  //   },
+  //   mantleTest: {
+  //   url: "https://rpc.testnet.mantle.xyz", // testnet
+  //   accounts: [process.env.ACCOUNT_PRIVATE_KEY ?? '']
+  //   }
 
 },
 etherscan: {

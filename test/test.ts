@@ -22,11 +22,14 @@ import {
   
       const TokenEx = await ethers.getContractFactory("SnowDay");
       const tokenEx = await TokenEx.deploy(
-        ["Cap America", "Hulk", "Witch"],
+        ["Tank", "Balanced", "Swift"],
         ["https://i.imgur.com/DYy7js6.jpeg", 
         "https://i.imgur.com/lgPFnUw.jpeg", 
         "https://i.imgur.com/yRMhDS0.jpeg"],
-        [100, 200, 300],                                                
+        [300, 200, 100],    //HP
+        [25, 20, 25],       //Attack
+        [20, 15, 10],       //Defense
+        [0, 10, 20],       //Evade                                  
       );
   
       await tokenEx.waitForDeployment();
