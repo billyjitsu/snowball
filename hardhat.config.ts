@@ -40,6 +40,13 @@ networks: {
     // gas: 200000000,
     // gasPrice: 100000000000,
   },
+  sepolia: {
+    url: `${process.env.SEPOLIA_RPC_URL}`,
+    accounts: [`${process.env.PRIVATE_KEY}`],
+    // gas: 200000000,
+    // gasPrice: 100000000000,
+  },
+  
   // mantle: {
   //   url: "https://rpc.mantle.xyz", //mainnet
   //   accounts: [process.env.ACCOUNT_PRIVATE_KEY ?? ''],
@@ -65,11 +72,11 @@ customChains: [
 },
 
 sourcify: {
-  enabled: true
+  enabled: false
 },
 
 gasReporter: {
-  enabled: true
+  enabled: false
 }
 };
 

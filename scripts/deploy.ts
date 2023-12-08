@@ -2,15 +2,19 @@ import { ethers } from "hardhat";
 
 async function main() {
 
-
-  // const ape = await ethers.deployContract("SimpleToken", ["Ape Coin", "APE"], {});
-  // await ape.waitForDeployment();
-  // console.log(`SimpleToken contract address: ${ape.target}`);
-
-
   const airnode = "0xa0AD79D995DdeeB18a14eAef56A549A04e3Aa1Bd" // Airnode Base
-  // The new way of deploying contracts    Name of Contract, Constructor Arguments, Overrides
-  const tokenEx = await ethers.deployContract("Prediction", [airnode, "0xb8EAa40a7976474a47bB48291FE569f383069FBc"], {});
+  
+  const TokenEx = await ethers.getContractFactory("SnowDay");
+  const tokenEx = await TokenEx.deploy(
+    ["Tank", "Balanced", "Swift"],
+    ["https://i.imgur.com/DYy7js6.jpeg", 
+    "https://i.imgur.com/lgPFnUw.jpeg", 
+    "https://i.imgur.com/yRMhDS0.jpeg"],
+    [300, 200, 100],    //HP
+    [25, 20, 25],       //Attack
+    [20, 15, 10],       //Defense
+    [0, 10, 20],       //Evade                                  
+  );
 
   await tokenEx.waitForDeployment();
 

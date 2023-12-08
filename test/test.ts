@@ -23,8 +23,8 @@ import {
       const TokenEx = await ethers.getContractFactory("SnowDay");
       const tokenEx = await TokenEx.deploy(
         ["Tank", "Balanced", "Swift"],
-        ["https://i.imgur.com/DYy7js6.jpeg", 
-        "https://i.imgur.com/lgPFnUw.jpeg", 
+        ["https://i.imgur.com/lgPFnUw.jpeg", 
+        "https://i.imgur.com/DYy7js6.jpeg", 
         "https://i.imgur.com/yRMhDS0.jpeg"],
         [300, 200, 100],    //HP
         [25, 20, 25],       //Attack
@@ -45,37 +45,49 @@ import {
       });
     });
   
-    describe("Claim Penguins", function () {
-      it("Mint Pengu", async function () {
+    describe("Claim NFT", function () {
+      it("Mint NFT", async function () {
         const { tokenEx, owner, otherAccount, timestamp } = await loadFixture(deployBefore);
-        await tokenEx.claimPenguin(0);
-        await tokenEx.connect(otherAccount).claimPenguin(1);
-        await expect(tokenEx.connect(otherAccount).claimPenguin(1)).to.be.revertedWith('Already has a penguin');
+        await tokenEx.claimNFT(0);
+        await tokenEx.connect(otherAccount).claimNFT(1);
+        await expect(tokenEx.connect(otherAccount).claimNFT(1)).to.be.revertedWithCustomError(tokenEx, 'AlreadyHasNFT');
 
         expect(await tokenEx.balanceOf(owner.address)).to.equal(1);
         expect(await tokenEx.balanceOf(otherAccount.address)).to.equal(1);
       });
 
+      it("Test Pause", async function () {
+        const { tokenEx, owner, otherAccount, timestamp } = await loadFixture(deployBefore);
+        await tokenEx.stopGame();
+        await expect(tokenEx.connect(otherAccount).claimNFT(1)).to.be.revertedWithCustomError(tokenEx, 'Paused');
+      });
+
       it("Throw Snowball", async function () {
         const { tokenEx, owner, otherAccount, timestamp } = await loadFixture(deployBefore);
-        await tokenEx.claimPenguin(0);
-        await tokenEx.connect(otherAccount).claimPenguin(1);
+        //Claim Tank
+        await tokenEx.claimNFT(0);
+
+        //Claim Balanced
+        await tokenEx.connect(otherAccount).claimNFT(1);
         
-        for (let i = 0; i < 9; i++) {
-          await tokenEx.throwSnowball(otherAccount.address);
+        for (let i = 0; i < 12; i++) {
+          const tx = await tokenEx.throwSnowball(otherAccount.address);
+          await tx.wait();
+          // let hp = await tokenEx.getCharacterHp(1);
+          // console.log(hp);
         }
       });
 
       it("Names", async function () {
         const { tokenEx, owner, otherAccount, timestamp } = await loadFixture(deployBefore);
-        await tokenEx.claimPenguin(0);
-        await tokenEx.connect(otherAccount).claimPenguin(1);
+        await tokenEx.claimNFT(0);
+        await tokenEx.connect(otherAccount).claimNFT(1);
 
         await tokenEx.updateCharacterName(2, "Billy");
         await tokenEx.updateCharacterImageURI(2, "new string");
         await tokenEx.updateCharacterHp(2, 1000);
 
-        await tokenEx.addCharacter("new name", "new string", 2000);
+        await tokenEx.addCharacter("new name", "new string", 2000, 100, 100, 100);
         
         let names = await tokenEx.getAllDefaultCharacters();
        // console.log(names);

@@ -7,6 +7,12 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import "hardhat/console.sol";
 import "./lib/Base64.sol";
 
+error Paused();
+error AlreadyHasNFT();
+error EnemyNeedsNFT();
+error YouNeedAnNFT();
+error CharacterMustHaveHP();
+
 contract SnowDay is ERC721, Ownable {
     struct CharacterAttributes {
         uint256 characterIndex;
@@ -18,27 +24,22 @@ contract SnowDay is ERC721, Ownable {
         uint256 defense;
         uint256 evade;
     }
-    //uint256 level;
 
     uint256 public nextTokenId = 1;
     bool public isGamePaused = false;
 
-    // A lil array to help us hold the default data for our characters.
-    // This will be helpful when we mint new characters and need to know
     CharacterAttributes[] defaultCharacters;
 
-    // We create a mapping from the nft's tokenId => that NFTs attributes.
     mapping(uint256 => CharacterAttributes) public nftHolderAttributes;
-    // A mapping from an address => the NFTs tokenId. Gives me an ez way
-    // to store the owner of the NFT and reference it later.
     mapping(address => uint256) public nftHolders;
 
     //events
     event CharacterNFTMinted(address sender, uint256 tokenId, uint256 characterIndex);
     event AttackComplete(uint256 atkAmount, uint256 playerHp);
+    event MissedAttack(address attacker, address victim);
+    event SuccessfulAttack(address attacker, address victim, uint256 damageAmount, uint256 victimHp);
+    event NFTBurned(address victim, uint256 tokenId, address attacker);
 
-    // Data passed in to the contract when it's first created initializing the characters.
-    // We're going to actually pass these values in from from run.js.
     constructor(
         string[] memory characterNames,
         string[] memory characterImageURIs,
@@ -47,8 +48,6 @@ contract SnowDay is ERC721, Ownable {
         uint256[] memory characterDefense,
         uint256[] memory characterEvade
     ) ERC721("Snowday", "PPS") {
-        // Loop through all the characters, and save their values in our contract so
-        // we can use them later when we mint our NFTs.
         for (uint256 i = 0; i < characterNames.length; i += 1) {
             defaultCharacters.push(
                 CharacterAttributes({
@@ -62,19 +61,16 @@ contract SnowDay is ERC721, Ownable {
                     evade: characterEvade[i]
                 })
             );
-
-            CharacterAttributes memory c = defaultCharacters[i];
-            console.log("Done initializing %s w/ HP %s, img %s", c.name, c.hp, c.imageURI);
         }
     }
 
-    function claimPenguin(uint256 _characterIndex) external {
-        require(isGamePaused == false, "GAME_PAUSED");
-        require(balanceOf(msg.sender) == 0, "Already has a penguin");
+    function claimNFT(uint256 _characterIndex) external {
+        if (isGamePaused) revert Paused();
+        if (balanceOf(msg.sender) > 0) revert AlreadyHasNFT();
 
         _mint(msg.sender, nextTokenId);
 
-        // We map the tokenId => their character attributes.
+        // Map the tokenId => their character attributes.
         nftHolderAttributes[nextTokenId] = CharacterAttributes({
             characterIndex: _characterIndex,
             name: defaultCharacters[_characterIndex].name,
@@ -85,29 +81,23 @@ contract SnowDay is ERC721, Ownable {
             defense: defaultCharacters[_characterIndex].defense,
             evade: defaultCharacters[_characterIndex].evade
         });
-
-        // console.log("Minted NFT w/ tokenId %s and characterIndex %s", nextTokenId, _characterIndex);
-
-        // Keep an easy way to see who owns what NFT.
+        
         nftHolders[msg.sender] = nextTokenId;
-
         nextTokenId++;
-
-        //emit event
         emit CharacterNFTMinted(msg.sender, nextTokenId, _characterIndex);
     }
 
     function throwSnowball(address _victim) external {
-        require(isGamePaused == false, "GAME_PAUSED");
-        require(balanceOf(msg.sender) > 0, "You need a penguin to throw a snowball!");
-        require(balanceOf(_victim) > 0, "Enemy needs a penguin to hit!");
+        if (isGamePaused) revert Paused();
+        if (balanceOf(msg.sender) == 0) revert YouNeedAnNFT();
+        if (balanceOf(_victim) == 0) revert EnemyNeedsNFT();
         //request the number
         hit(_victim, msg.sender);
     }
 
     function hit(address _victim, address _attacker) internal {
-        require(isGamePaused == false, "GAME_PAUSED");
-        require(balanceOf(_victim) > 0, "You need a penguin to hit!");
+        if (isGamePaused) revert Paused();
+        if (balanceOf(_victim) == 0) revert EnemyNeedsNFT();
 
         uint256 nftTokenofAttacker = nftHolders[_attacker];
         uint256 nftTokenIdOfPlayer = nftHolders[_victim];
@@ -115,42 +105,31 @@ contract SnowDay is ERC721, Ownable {
         CharacterAttributes storage player = nftHolderAttributes[nftTokenIdOfPlayer];
 
         // Make sure the player has more than 0 HP.
-        require(player.hp > 0, "Error: Character must have HP to attack.");
+        if (player.hp == 0) revert CharacterMustHaveHP();
 
         //random number between 0 and 99
         uint256 random = uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender, _victim))) % 100;
 
         // Adjust the hit chance based on evade
         if (random > (50 - player.evade)) {
-            console.log("Missed due to evasion");
-            return; // attack missed
+            emit MissedAttack(_attacker, _victim);
+            //  console.log("Missed due to evasion");
+            return;
         }
 
         // Calculate potential damage
         uint256 potentialDamage = random + attacker.attackDamage - player.defense;
         if (potentialDamage > player.hp) {
             _burn(nftTokenIdOfPlayer);
-            console.log("Player has been burned");
-            console.log("Balance of Victim: %s", balanceOf(_victim));
+            emit NFTBurned(_victim, nftTokenIdOfPlayer, _attacker);
+            // console.log("Player has been burned");
+            // console.log("Balance of Victim: %s", balanceOf(_victim));
         } else {
             player.hp = player.hp - potentialDamage;
-            console.log("Player attacked enemy. New Enemy hp is: %s\n", player.hp);
+            // console.log("Attack Damage", attacker.attackDamage, random) ;
+            // console.log("Player attacked enemy. New Enemy hp is: %s\n", player.hp);
+            emit SuccessfulAttack(_attacker, _victim, potentialDamage, player.hp);
         }
-
-        // if (random < 50) {
-        //     if (random > player.hp) {
-        //         _burn(nftTokenIdOfPlayer);
-        //         console.log("Player has been burned");
-        //         console.log("Balance fo Victim: %s", balanceOf(_victim));
-        //     } else {
-        //         // hit
-        //         player.hp = player.hp - random;
-        //         console.log("Player attacked enemy. New Enemy hp is: %s\n", player.hp);
-        //     }
-        // } else {
-        //     console.log("Missed");
-        //     // miss
-        // }
     }
 
     function tokenURI(uint256 _tokenId) public view override returns (string memory) {
@@ -160,8 +139,8 @@ contract SnowDay is ERC721, Ownable {
         string memory strMaxHp = Strings.toString(charAttributes.maxHp);
         string memory strAttackDamage = Strings.toString(charAttributes.attackDamage);
         string memory strDefense = Strings.toString(charAttributes.defense);
-        // string memory strEvade = Strings.toString(charAttributes.evade);
 
+        // Ensure that the JSON is correctly formatted
         string memory json = Base64.encode(
             bytes(
                 string(
@@ -172,13 +151,13 @@ contract SnowDay is ERC721, Ownable {
                         Strings.toString(_tokenId),
                         '", "description": "The Pudgy Snowball Game!", "image": "',
                         charAttributes.imageURI,
-                        '", "attributes": [ { "trait_type": "Health Points", "value": ',
+                        '", "attributes": [ {"trait_type": "Health Points", "value": ',
                         strHp,
-                        ', "max_value":',
+                        ', "max_value": ',
                         strMaxHp,
-                        '", "attack_damage": ',
+                        '}, {"trait_type": "Attack Damage", "value": ',
                         strAttackDamage,
-                        ', "defense": ',
+                        '}, {"trait_type": "Defense", "value": ',
                         strDefense,
                         "}]}"
                     )
@@ -186,19 +165,14 @@ contract SnowDay is ERC721, Ownable {
             )
         );
 
-        string memory output = string(abi.encodePacked("data:application/json;base64,", json));
-
-        return output;
+        return string(abi.encodePacked("data:application/json;base64,", json));
     }
 
     function checkIfUserHasNFT() public view returns (CharacterAttributes memory) {
-        // Get the token id of wallet
         uint256 userNftTokenId = nftHolders[msg.sender];
-        // If the user has a tokenId in the map, return their character
         if (userNftTokenId > 0) {
             return nftHolderAttributes[userNftTokenId];
         }
-        //Else, return and empty character
         else {
             CharacterAttributes memory emptyStruct;
             return emptyStruct;
@@ -231,7 +205,16 @@ contract SnowDay is ERC721, Ownable {
         );
     }
 
-    function updateCharacterName(uint256 _characterIndex, string memory _newName) external {
+    function getCharacterStats(uint256 _tokenId) external view returns (CharacterAttributes memory) {
+        return nftHolderAttributes[_tokenId];
+    }
+
+    function getCharacterHp(uint256 _tokenId) public view returns (uint256) {
+        return nftHolderAttributes[_tokenId].hp;
+    }
+
+    // Only Owner Functions
+    function updateCharacterName(uint256 _characterIndex, string memory _newName) external onlyOwner() {
         defaultCharacters[_characterIndex].name = _newName;
     }
 
@@ -255,22 +238,11 @@ contract SnowDay is ERC721, Ownable {
         defaultCharacters[_characterIndex].evade = _newEvade;
     }
 
-    /**
-     * @notice Lets the owner restart the game
-     */
     function startGame() external onlyOwner {
         isGamePaused = false;
     }
 
-    /**
-     * @notice Lets the owner pause the game
-     */
     function stopGame() external onlyOwner {
         isGamePaused = true;
-    }
-
-    modifier gameNotPaused() {
-        require(!isGamePaused, "Game is paused");
-        _;
     }
 }

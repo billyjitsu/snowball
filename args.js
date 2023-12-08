@@ -1,5 +1,12 @@
 module.exports = [
-    "0xa0AD79D995DdeeB18a14eAef56A549A04e3Aa1Bd",
-    "0xb8EAa40a7976474a47bB48291FE569f383069FBc"
-  ];
-  
+  ["Tank", "Balanced", "Swift"],
+  [
+    "https://i.imgur.com/DYy7js6.jpeg",
+    "https://i.imgur.com/lgPFnUw.jpeg",
+    "https://i.imgur.com/yRMhDS0.jpeg",
+  ],
+  [300, 200, 100],
+  [25, 20, 25],
+  [20, 15, 10],
+  [0, 10, 20],
+];
