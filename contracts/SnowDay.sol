@@ -81,7 +81,7 @@ contract SnowDay is ERC721, Ownable {
             defense: defaultCharacters[_characterIndex].defense,
             evade: defaultCharacters[_characterIndex].evade
         });
-        
+
         nftHolders[msg.sender] = nextTokenId;
         nextTokenId++;
         emit CharacterNFTMinted(msg.sender, nextTokenId, _characterIndex);
@@ -105,7 +105,7 @@ contract SnowDay is ERC721, Ownable {
         CharacterAttributes storage player = nftHolderAttributes[nftTokenIdOfPlayer];
 
         // Make sure the player has more than 0 HP.
-        if (player.hp == 0) revert CharacterMustHaveHP();
+        // if (player.hp == 0) revert CharacterMustHaveHP();
 
         //random number between 0 and 99
         uint256 random = uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender, _victim))) % 100;
@@ -168,8 +168,8 @@ contract SnowDay is ERC721, Ownable {
         return string(abi.encodePacked("data:application/json;base64,", json));
     }
 
-    function checkIfUserHasNFT() public view returns (CharacterAttributes memory) {
-        uint256 userNftTokenId = nftHolders[msg.sender];
+    function checkIfUserNFT(address _holder) public view returns (CharacterAttributes memory) {
+        uint256 userNftTokenId = nftHolders[_holder];
         if (userNftTokenId > 0) {
             return nftHolderAttributes[userNftTokenId];
         }
@@ -179,10 +179,30 @@ contract SnowDay is ERC721, Ownable {
         }
     }
 
+    function checkIfTargetHasNFT(address _holder) public view returns (bool) {
+        if (balanceOf(_holder) > 0) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
     function getAllDefaultCharacters() public view returns (CharacterAttributes[] memory) {
         return defaultCharacters;
     }
 
+    
+
+    function getCharacterStats(uint256 _tokenId) external view returns (CharacterAttributes memory) {
+        return nftHolderAttributes[_tokenId];
+    }
+
+    function getCharacterHp(uint256 _tokenId) public view returns (uint256) {
+        return nftHolderAttributes[_tokenId].hp;
+    }
+
+    // Only Owner Functions
     function addCharacter(
         string memory _name,
         string memory _imageURI,
@@ -205,15 +225,6 @@ contract SnowDay is ERC721, Ownable {
         );
     }
 
-    function getCharacterStats(uint256 _tokenId) external view returns (CharacterAttributes memory) {
-        return nftHolderAttributes[_tokenId];
-    }
-
-    function getCharacterHp(uint256 _tokenId) public view returns (uint256) {
-        return nftHolderAttributes[_tokenId].hp;
-    }
-
-    // Only Owner Functions
     function updateCharacterName(uint256 _characterIndex, string memory _newName) external onlyOwner() {
         defaultCharacters[_characterIndex].name = _newName;
     }
