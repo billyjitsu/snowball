@@ -87,15 +87,15 @@ contract SnowDay is ERC721, Ownable {
         emit CharacterNFTMinted(msg.sender, nextTokenId, _characterIndex);
     }
 
-    function throwSnowball(address _victim) external {
+    function xthrowSnowball(address _victim) external {
         if (isGamePaused) revert Paused();
         if (balanceOf(msg.sender) == 0) revert YouNeedAnNFT();
         if (balanceOf(_victim) == 0) revert EnemyNeedsNFT();
         //request the number
-        hit(_victim, msg.sender);
+        xhit(_victim, msg.sender);
     }
 
-    function hit(address _victim, address _attacker) internal {
+    function xhit(address _victim, address _attacker) internal {
         if (isGamePaused) revert Paused();
         if (balanceOf(_victim) == 0) revert EnemyNeedsNFT();
 
