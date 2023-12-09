@@ -2,19 +2,18 @@ import { ethers } from "hardhat";
 
 async function main() {
 
-  const airnode = "0xa0AD79D995DdeeB18a14eAef56A549A04e3Aa1Bd" // Airnode Base
-  
-  const TokenEx = await ethers.getContractFactory("SnowDay");
-  const tokenEx = await TokenEx.deploy(
-    ["Tank", "Balanced", "Swift"],
-    ["https://i.imgur.com/DYy7js6.jpeg", 
+  const airnode = "0x2ab9f26E18B64848cd349582ca3B55c2d06f507d"; // Airnode Sepolia
+  const names = ["Tank", "Balanced", "Swift"];
+  const images = ["https://i.imgur.com/DYy7js6.jpeg", 
     "https://i.imgur.com/lgPFnUw.jpeg", 
-    "https://i.imgur.com/yRMhDS0.jpeg"],
-    [300, 200, 100],    //HP
-    [25, 20, 25],       //Attack
-    [20, 15, 10],       //Defense
-    [0, 10, 20],       //Evade                                  
-  );
+    "https://i.imgur.com/yRMhDS0.jpeg"];
+  const hp = [300, 200, 100];
+  const attack = [25, 20, 25];
+  const defense = [20, 15, 10];
+  const evade = [0, 10, 20];
+  
+  const TokenEx = await ethers.getContractFactory("NFTAttack");
+  const tokenEx = await TokenEx.deploy(airnode, names, images, hp, attack, defense, evade);                                
 
   await tokenEx.waitForDeployment();
 

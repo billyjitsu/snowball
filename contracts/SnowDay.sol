@@ -87,50 +87,50 @@ contract SnowDay is ERC721, Ownable {
         emit CharacterNFTMinted(msg.sender, nextTokenId, _characterIndex);
     }
 
-    function xthrowSnowball(address _victim) external {
-        if (isGamePaused) revert Paused();
-        if (balanceOf(msg.sender) == 0) revert YouNeedAnNFT();
-        if (balanceOf(_victim) == 0) revert EnemyNeedsNFT();
-        //request the number
-        xhit(_victim, msg.sender);
-    }
+    // function xthrowSnowball(address _victim) external {
+    //     if (isGamePaused) revert Paused();
+    //     if (balanceOf(msg.sender) == 0) revert YouNeedAnNFT();
+    //     if (balanceOf(_victim) == 0) revert EnemyNeedsNFT();
+    //     //request the number
+    //     xhit(_victim, msg.sender);
+    // }
 
-    function xhit(address _victim, address _attacker) internal {
-        if (isGamePaused) revert Paused();
-        if (balanceOf(_victim) == 0) revert EnemyNeedsNFT();
+    // function xhit(address _victim, address _attacker) internal {
+    //     if (isGamePaused) revert Paused();
+    //     if (balanceOf(_victim) == 0) revert EnemyNeedsNFT();
 
-        uint256 nftTokenofAttacker = nftHolders[_attacker];
-        uint256 nftTokenIdOfPlayer = nftHolders[_victim];
-        CharacterAttributes storage attacker = nftHolderAttributes[nftTokenofAttacker];
-        CharacterAttributes storage player = nftHolderAttributes[nftTokenIdOfPlayer];
+    //     uint256 nftTokenofAttacker = nftHolders[_attacker];
+    //     uint256 nftTokenIdOfPlayer = nftHolders[_victim];
+    //     CharacterAttributes storage attacker = nftHolderAttributes[nftTokenofAttacker];
+    //     CharacterAttributes storage player = nftHolderAttributes[nftTokenIdOfPlayer];
 
-        // Make sure the player has more than 0 HP.
-        // if (player.hp == 0) revert CharacterMustHaveHP();
+    //     // Make sure the player has more than 0 HP.
+    //     // if (player.hp == 0) revert CharacterMustHaveHP();
 
-        //random number between 0 and 99
-        uint256 random = uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender, _victim))) % 100;
+    //     //random number between 0 and 99
+    //     uint256 random = uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender, _victim))) % 100;
 
-        // Adjust the hit chance based on evade
-        if (random > (50 - player.evade)) {
-            emit MissedAttack(_attacker, _victim);
-            //  console.log("Missed due to evasion");
-            return;
-        }
+    //     // Adjust the hit chance based on evade
+    //     if (random > (50 - player.evade)) {
+    //         emit MissedAttack(_attacker, _victim);
+    //         //  console.log("Missed due to evasion");
+    //         return;
+    //     }
 
-        // Calculate potential damage
-        uint256 potentialDamage = random + attacker.attackDamage - player.defense;
-        if (potentialDamage > player.hp) {
-            _burn(nftTokenIdOfPlayer);
-            emit NFTBurned(_victim, nftTokenIdOfPlayer, _attacker);
-            // console.log("Player has been burned");
-            // console.log("Balance of Victim: %s", balanceOf(_victim));
-        } else {
-            player.hp = player.hp - potentialDamage;
-            // console.log("Attack Damage", attacker.attackDamage, random) ;
-            // console.log("Player attacked enemy. New Enemy hp is: %s\n", player.hp);
-            emit SuccessfulAttack(_attacker, _victim, potentialDamage, player.hp);
-        }
-    }
+    //     // Calculate potential damage
+    //     uint256 potentialDamage = random + attacker.attackDamage - player.defense;
+    //     if (potentialDamage > player.hp) {
+    //         _burn(nftTokenIdOfPlayer);
+    //         emit NFTBurned(_victim, nftTokenIdOfPlayer, _attacker);
+    //         // console.log("Player has been burned");
+    //         // console.log("Balance of Victim: %s", balanceOf(_victim));
+    //     } else {
+    //         player.hp = player.hp - potentialDamage;
+    //         // console.log("Attack Damage", attacker.attackDamage, random) ;
+    //         // console.log("Player attacked enemy. New Enemy hp is: %s\n", player.hp);
+    //         emit SuccessfulAttack(_attacker, _victim, potentialDamage, player.hp);
+    //     }
+    // }
 
     function tokenURI(uint256 _tokenId) public view override returns (string memory) {
         CharacterAttributes memory charAttributes = nftHolderAttributes[_tokenId];
@@ -172,8 +172,7 @@ contract SnowDay is ERC721, Ownable {
         uint256 userNftTokenId = nftHolders[_holder];
         if (userNftTokenId > 0) {
             return nftHolderAttributes[userNftTokenId];
-        }
-        else {
+        } else {
             CharacterAttributes memory emptyStruct;
             return emptyStruct;
         }
@@ -182,8 +181,7 @@ contract SnowDay is ERC721, Ownable {
     function checkIfTargetHasNFT(address _holder) public view returns (bool) {
         if (balanceOf(_holder) > 0) {
             return true;
-        }
-        else {
+        } else {
             return false;
         }
     }
@@ -191,8 +189,6 @@ contract SnowDay is ERC721, Ownable {
     function getAllDefaultCharacters() public view returns (CharacterAttributes[] memory) {
         return defaultCharacters;
     }
-
-    
 
     function getCharacterStats(uint256 _tokenId) external view returns (CharacterAttributes memory) {
         return nftHolderAttributes[_tokenId];
@@ -225,7 +221,7 @@ contract SnowDay is ERC721, Ownable {
         );
     }
 
-    function updateCharacterName(uint256 _characterIndex, string memory _newName) external onlyOwner() {
+    function updateCharacterName(uint256 _characterIndex, string memory _newName) external onlyOwner {
         defaultCharacters[_characterIndex].name = _newName;
     }
 

@@ -1,4 +1,5 @@
 module.exports = [
+  "0x2ab9f26E18B64848cd349582ca3B55c2d06f507d",
   ["Tank", "Balanced", "Swift"],
   [
     "https://i.imgur.com/DYy7js6.jpeg",

@@ -5,21 +5,31 @@ import "@api3/airnode-protocol/contracts/rrp/requesters/RrpRequesterV0.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./SnowDay.sol";
 
-contract QRNGExample is RrpRequesterV0, Ownable, SnowDay{
-
+contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
     address public airnode;
     bytes32 public endpointIdUint256;
     address public sponsorWallet;
 
-    uint256 public qrngUint256;
+    uint256 public randomInRange;
 
-    mapping (bytes32 => bool) public expectingRequestWithIdToBeFulfilled;
+    mapping(bytes32 => bool) public expectingRequestWithIdToBeFulfilled;
     mapping(bytes32 => address[2]) whoToHit;
 
     event RequestUint256(bytes32 indexed requestId);
     event ReceivedUint256(bytes32 indexed requestId, uint256 response);
 
-    constructor(address _airnodeRrp, string[] memory characterNames, string[] memory characterImageURIs, uint256[] memory characterHp, uint256[] memory characterAttack, uint256[] memory characterDefense, uint256[] memory characterEvade) RrpRequesterV0(_airnodeRrp)SnowDay(characterNames, characterImageURIs, characterHp, characterAttack, characterDefense, characterEvade){}
+    constructor(
+        address _airnodeRrp,
+        string[] memory characterNames,
+        string[] memory characterImageURIs,
+        uint256[] memory characterHp,
+        uint256[] memory characterAttack,
+        uint256[] memory characterDefense,
+        uint256[] memory characterEvade
+    )
+        RrpRequesterV0(_airnodeRrp)
+        SnowDay(characterNames, characterImageURIs, characterHp, characterAttack, characterDefense, characterEvade)
+    {}
 
     function setRequestParameters(address _airnode, bytes32 _endpointIdUint256, address _sponsorWallet) external {
         airnode = _airnode;
@@ -72,13 +82,7 @@ contract QRNGExample is RrpRequesterV0, Ownable, SnowDay{
 
     function makeRequestUint256(address _victim, address _attacker) public {
         bytes32 requestId = airnodeRrp.makeFullRequest(
-            airnode,
-            endpointIdUint256,
-            address(this),
-            sponsorWallet,
-            address(this),
-            this.fulfillUint256.selector,
-            ""
+            airnode, endpointIdUint256, address(this), sponsorWallet, address(this), this.fulfillUint256.selector, ""
         );
         expectingRequestWithIdToBeFulfilled[requestId] = true;
         //tag the request with the victim
@@ -87,21 +91,16 @@ contract QRNGExample is RrpRequesterV0, Ownable, SnowDay{
     }
 
     function fulfillUint256(bytes32 requestId, bytes calldata data) external onlyAirnodeRrp {
-        require( expectingRequestWithIdToBeFulfilled[requestId], "Request ID not known");
+        require(expectingRequestWithIdToBeFulfilled[requestId], "Request ID not known");
         expectingRequestWithIdToBeFulfilled[requestId] = false;
-        qrngUint256 = abi.decode(data, (uint256));
+        uint256 qrngUint256 = abi.decode(data, (uint256));
         // Convert the uint256 to a number in the range 1-100
-        uint256 randomInRange = (qrngUint256 % 100) + 1;
+        randomInRange = (qrngUint256 % 100) + 1;
         hit(whoToHit[requestId][0], whoToHit[requestId][1], randomInRange);
         emit ReceivedUint256(requestId, qrngUint256);
     }
 
-
     function withdraw() external {
-        airnodeRrp.requestWithdrawal(
-        airnode,
-        sponsorWallet
-        );
+        airnodeRrp.requestWithdrawal(airnode, sponsorWallet);
     }
-
 }
