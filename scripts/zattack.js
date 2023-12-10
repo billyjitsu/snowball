@@ -33,6 +33,8 @@ async function main() {
     "Request completed!"
   );
 
+  // console.log("Tnx logs: ", txReceipt.logs);
+
   // console.log("transaction receieipt: ", txReceipt.logsBloom);
   // console.log("transaction receieipt full: ", txReceipt);
 
@@ -63,22 +65,23 @@ async function main() {
     // })
 //}
 
-let events = await contract.queryFilter('RequestUint256', txReceipt.blockNumber, txReceipt.blockNumber);
 
-  console.log("Ethers version event:",events);
+// //Working
+// let events = await contract.queryFilter('RequestUint256', txReceipt.blockNumber, txReceipt.blockNumber);
+
+//   console.log("Ethers version event:",events);
   
 
-  //first listen for the event
-  // console.log("1st listen");
-  // contract.on("throwSnowball", (from, to, amount) => {
-  //   try{
-  //   console.log(`${from} threw ${amount} snowballs at ${to}`);
-  //   } catch (error){
-  //   console.log(error);
-  //   throw new Error("Transaction failed");
-  //   }
-  // }
-  // );
+//   // //first listen for the event
+//   // console.log("1st listen");
+//   contract.on("RequestUint256", (requestID, event) => {
+//     let info = {
+//       requestID: requestID,
+//       event: event,
+//     };
+//     console.log(JSON.stringify(info, null, 2));
+//     }
+//   );
 
   // 2nd listen
   // console.log("2nd listen");
@@ -102,6 +105,7 @@ let events = await contract.queryFilter('RequestUint256', txReceipt.blockNumber,
   //////
 //    // and read the logs once it gets confirmed to get the request ID
 //    console.log("Waiting for the request to be fulfilled...");
+
 //    const requestId = await new Promise((resolve) =>
 //    contract.once(requestRandomNumber.hash, (tx) => {
 //      // We want the log from RrpRequesterContract
