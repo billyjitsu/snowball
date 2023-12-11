@@ -60,7 +60,7 @@ async function main() {
   // console.log("transaction receieipt full: ", txReceipt);
 
   console.log("Waiting for the request to be fulfilled...");
-  
+
   const response = await new Promise((resolve) => {
     // Function to clean up event listeners
     function cleanup() {
@@ -71,6 +71,9 @@ async function main() {
   
     // Setting up listeners for each event
     contract.once(contract.filters.MissedAttack(), (event) => {
+      if (event.args[0] !== attacker) {
+        return;
+      }
       console.log("Missed Attack");
       console.log("Attacker: ", event.args[0]);
       console.log("Victim: ", event.args[1]);
@@ -79,6 +82,9 @@ async function main() {
     });
   
     contract.once(contract.filters.SuccessfulAttack(), (event) => {
+      if (event.args[0] !== attacker) {
+        return;
+      }
       console.log("Successful Attack");
       console.log("Attacker: ", event.args[0]);
       console.log("Victim: ", event.args[1]);
@@ -90,6 +96,9 @@ async function main() {
     });
   
     contract.once(contract.filters.NFTBurned(), (event) => {
+      if (event.args[2] !== attacker) {
+        return;
+      }
       console.log("NFT Burned");
       console.log("Victim: ", event.args[0]);
       console.log("Token ID Burned: ", event.args[1]);
