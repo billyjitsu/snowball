@@ -17,11 +17,12 @@ import {
 import React, { useState, useEffect } from "react";
 import LoadingScreen from "./Loading";
 import { parseEther } from "viem";
-import { encode, decode } from "@api3/airnode-abi";
+import { encode, decode } from '@api3/airnode-abi';
 import PredictionContract from "../contract/contract.json";
 import ApeContract from "../contract/ape.json";
 
-const Intro = () => {
+
+const Fight = () => {
   const { address, isConnected } = useAccount();
   const [loading, setLoading] = useState<boolean>(false);
   const [minted, setMinted] = useState<boolean>(false);
@@ -37,32 +38,13 @@ const Intro = () => {
   //taken from the sportsmonk airnode configes
   const airnode = "0xbBaf8B6C5d1C9fBCBf2A45f4b7b450415F936a92";
   // This call is season winner endpoint
-  const endPoint =
-    "0x6e58ace4ab94d28da59ec1da675b513cc21a3ca9656228c0b052563a2eb88b3e";
+  const endPoint = "0x6e58ace4ab94d28da59ec1da675b513cc21a3ca9656228c0b052563a2eb88b3e";
   const sponsorWallet = "0x6c33312c753cAc450fD800D297E019135895bc0B";
 
   const contractConfig = {
     address: contractAddress,
     abi: PredictionContract.abi,
   };
-
-  const images = [
-    {
-      src: "https://i.imgur.com/DYy7js6.jpeg",
-      description: "Heavy Tank Character",
-      buttonText: "Choose",
-    },
-    {
-      src: "https://i.imgur.com/lgPFnUw.jpeg",
-      description: "Midrange Character",
-      buttonText: "Choose",
-    },
-    {
-      src: "https://i.imgur.com/yRMhDS0.jpeg",
-      description: "Quick Evasive Character",
-      buttonText: "Choose",
-    },
-  ];
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(event.target.value);
@@ -92,7 +74,7 @@ const Intro = () => {
   const handleSubmit = () => {
     // Handle the submission of the YouTube ID here
     sendRequest();
-    // console.log("Value:", inputValue);
+   // console.log("Value:", inputValue);
   };
 
   const handleBet = async () => {
@@ -105,8 +87,8 @@ const Intro = () => {
         address: contractAddress,
         abi: PredictionContract.abi,
         functionName: "placeBet",
-        args: [predictionInput, parseEther(apeAmount.toString())], //set positions
-        value: parseEther(ethAmount.toString()),
+        args: [predictionInput, parseEther((apeAmount).toString())], //set positions
+        value: parseEther((ethAmount).toString()),
       });
       setLoading(true);
       await waitForTransaction({
@@ -147,12 +129,13 @@ const Intro = () => {
         { type: "string", name: "seasonID", value: "6" },
         { type: "string", name: "_path", value: "data.0.id" },
         { type: "string", name: "_type", value: "int256" },
-      ];
+     ];
+     
+     const encodedData = encode(params);
+     //console.log("Decoded data:", decode(encodedData));
+     console.log("Encoded data:", encodedData);
+     return encodedData;
 
-      const encodedData = encode(params);
-      //console.log("Decoded data:", decode(encodedData));
-      console.log("Encoded data:", encodedData);
-      return encodedData;
     } catch (error) {
       console.log(error);
     }
@@ -174,34 +157,135 @@ const Intro = () => {
                     {!loading && !minted && (
                       <>
                         <h1 className="text-3xl md:text-5xl font-bold text-center text-white ">
-                          Choose Your Fighter
+                          Place Your Prediction
                         </h1>
                         <p className="text-white text-center text-xl">
-                          May the odds be in your favor
+                          F1 Season Six Grand Prix
                         </p>
 
-                        {/* Image Gallery */}
-                        <div className="container mx-auto p-4">
-                          <div className="flex flex-row justify-between">
-                            {images.map((image, index) => (
-                              <div
-                                key={index}
-                                className="max-w-xs flex flex-col items-center"
-                              >
-                                <img
-                                  src={image.src}
-                                  alt=""
-                                  className="w-3/4 h-auto"
-                                />
-                                <p className="text-center mt-2">
-                                  {image.description}
-                                </p>
-                                <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded my-4">
-                                  {image.buttonText}
-                                </button>
-                              </div>
-                            ))}
+                        <div className="overflow-x-auto relative">
+                          <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                            <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                              <tr>
+                                <th scope="col" className="py-3 px-6">
+                                  Name
+                                </th>
+                                <th scope="col" className="py-3 px-6">
+                                  Number
+                                </th>
+                                <th scope="col" className="py-3 px-6">
+                                  Team
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                                <td className="py-4 px-6">Max Verstappen</td>
+                                <td className="py-4 px-6">1</td>
+                                <td className="py-4 px-6">Red Bull Racing</td>
+                              </tr>
+                              <tr className="bg-gray-50 dark:bg-gray-900">
+                                <td className="py-4 px-6">Logan Sargeant</td>
+                                <td className="py-4 px-6">2</td>
+                                <td className="py-4 px-6">Williams</td>
+                              </tr>
+                              <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                                <td className="py-4 px-6">Daniel Ricciardo</td>
+                                <td className="py-4 px-6">3</td>
+                                <td className="py-4 px-6">AlphaTauri</td>
+                              </tr>
+                              <tr className="bg-gray-50 dark:bg-gray-900">
+                                <td className="py-4 px-6">Lando Norris</td>
+                                <td className="py-4 px-6">4</td>
+                                <td className="py-4 px-6">McLaren</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+
+                        {/* <p className="text-white text-center">
+                          Using an offchain oracle, we will determine the number
+                          of views in a trustless manner
+                        </p> */}
+
+                        <div className="flex flex-col justify-center items-center">
+                          <div>
+                            <p className="text-white ">
+                              {" "}
+                              Place your prediction
+                            </p>
+                            <input
+                              type="text"
+                              placeholder="Racer ID Number"
+                              value={predictionInput}
+                              onChange={handlePredictionInputChange}
+                              className="border px-2 py-1"
+                            />
                           </div>
+
+                          <div>
+                            <p className="text-white "> ETH Wager</p>
+                            <input
+                              type="number"
+                              placeholder="ETH Amount"
+                              value={ethAmount}
+                              onChange={handleETHInputChange}
+                              className="border px-2 py-1"
+                            />
+                          </div>
+
+                          <div>
+                            <p className="text-white ">
+                              {" "}
+                              Insure with Ape Coin?
+                            </p>
+                            <input
+                              type="text"
+                              placeholder="Insure Position with APE coin?"
+                              value={apeAmount}
+                              onChange={handleApeInputChange}
+                              className="border px-2 py-1"
+                            />
+                            {apeAmount > 0 && (
+                              <button
+                                //  onClick={handleSubmit} //place bet
+                                className="bg-blue-500 px-4 py-2 text-white ml-2"
+                              >
+                                Allow
+                              </button>
+                            )}
+                          </div>
+                          <button
+                            onClick={handleBet} //place bet
+                            className="bg-blue-500 px-4 py-2 text-white ml-2"
+                          >
+                            Submit
+                          </button>
+                        </div>
+
+                        <div className="items-center text-center pt-5">
+                          <p className="text-white "> After race results</p>
+                          {/* <input
+                            type="text"
+                            placeholder="Enter YouTube ID"
+                            value={inputValue}
+                            onChange={handleInputChange}
+                            className="border px-2 py-1"
+                          /> */}
+
+                          <button
+                            onClick={handleSubmit}
+                            className="bg-blue-500 px-4 py-2 text-white ml-2"
+                          >
+                            Pull the results
+                          </button>
+
+                          {/* <button
+                            onClick={generateParameters}
+                            className="bg-blue-500 px-4 py-2 text-white ml-2"
+                          >
+                            test
+                          </button> */}
                         </div>
                       </>
                     )}
@@ -253,5 +337,5 @@ const Intro = () => {
   );
 };
 
-// export default Intro;
-export default dynamic(() => Promise.resolve(Intro), { ssr: false });
+// export default Fight;
+export default dynamic(() => Promise.resolve(Fight), { ssr: false });

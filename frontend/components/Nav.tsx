@@ -42,7 +42,7 @@ const Header = () => {
 
           <Link legacyBehavior href="/">
             <a className="text-xl font-bold text-white inline-block whitespace-nowrap uppercase drop-shadow-[0_2.2px_1.2px_rgba(0,0,0,0.8)]">
-              Onchain Prediction App
+              Snowday
             </a>
           </Link>
 

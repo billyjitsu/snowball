@@ -35,7 +35,7 @@ async function main() {
   );
 
   console.log("Starting Attack...");
-
+ 
   const receipt = await contract.throwSnowball("0x9263bFf6ACCb60E83254E95220e7637465298171");
 
   // console.log("Hash of the transaction: ", receipt.hash);
@@ -55,6 +55,7 @@ async function main() {
     throw new Error("Transaction failed");
   }
   console.log("Request completed successfully with request ID:", requestID);
+
   // console.log("Tnx logs: ", txReceipt.logs);
   // console.log("transaction receieipt: ", txReceipt.logsBloom);
   // console.log("transaction receieipt full: ", txReceipt);
