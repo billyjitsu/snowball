@@ -5,11 +5,11 @@ import { RainbowKitProvider, connectorsForWallets } from '@rainbow-me/rainbowkit
 import { coinbaseWallet, metaMaskWallet, rainbowWallet, walletConnectWallet } from '@rainbow-me/rainbowkit/wallets';
 import type { AppProps } from 'next/app';
 import { configureChains, createConfig, WagmiConfig } from 'wagmi';
-import {
+import {sepolia,
   goerli,
   baseGoerli
 } from 'wagmi/chains';
-import { EthereumGoerli, BaseGoerli } from '@particle-network/chains';
+import { EthereumGoerli, BaseGoerli, EthereumSepolia } from '@particle-network/chains';
 import { publicProvider } from 'wagmi/providers/public';
 import { ParticleNetwork } from '@particle-network/auth';
 import { particleWallet } from '@particle-network/rainbowkit-ext';
@@ -27,7 +27,7 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
   }), [selectedGoerliChain]);
 
   const { chains, publicClient, webSocketPublicClient } = configureChains(
-    [baseGoerli, ...(isTestnetsEnabled ? [goerli] : [])],
+    [sepolia, ...(isTestnetsEnabled ? [goerli] : [])],
     [publicProvider()]
   );
 
@@ -46,7 +46,7 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
     groupName: 'Web3',
     wallets: [
       rainbowWallet(commonOptions),
-      coinbaseWallet({ appName: 'Offchain Prediction App', ...commonOptions }),
+      coinbaseWallet({ appName: 'SnowDay', ...commonOptions }),
       metaMaskWallet(commonOptions),
       walletConnectWallet(commonOptions),
     ],

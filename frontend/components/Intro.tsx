@@ -18,32 +18,21 @@ import React, { useState, useEffect } from "react";
 import LoadingScreen from "./Loading";
 import { parseEther } from "viem";
 import { encode, decode } from "@api3/airnode-abi";
-import PredictionContract from "../contract/contract.json";
+import Snowfight from "../contract/contract.json";
 import ApeContract from "../contract/ape.json";
+import { on } from "events";
 
 const Intro = () => {
   const { address, isConnected } = useAccount();
   const [loading, setLoading] = useState<boolean>(false);
   const [minted, setMinted] = useState<boolean>(false);
-  const [position, setPosition] = useState<number>(0);
-  const [inputValue, setInputValue] = useState<string>("");
-  const [predictionInput, setPredictionInput] = useState<string>("");
-  const [apeAmount, setApeAmount] = useState<number>(0);
-  const [ethAmount, setEthAmount] = useState<number>(0);
-  const [youtubeId, setYoutubeId] = useState<string>("");
 
-  const contractAddress = "0xBA18f2DC2Ce0B971f33236fdf76E227bf9D8dDBd";
-  //Constants for ainrnod deployed to Base Testnet
-  //taken from the sportsmonk airnode configes
-  const airnode = "0xbBaf8B6C5d1C9fBCBf2A45f4b7b450415F936a92";
-  // This call is season winner endpoint
-  const endPoint =
-    "0x6e58ace4ab94d28da59ec1da675b513cc21a3ca9656228c0b052563a2eb88b3e";
-  const sponsorWallet = "0x6c33312c753cAc450fD800D297E019135895bc0B";
+
+  const contractAddress = "0x893b67416Df9D9d0cD64f1e1B484Cc7eAAfd3195";
 
   const contractConfig = {
     address: contractAddress,
-    abi: PredictionContract.abi,
+    abi: Snowfight.abi,
   };
 
   const images = [
@@ -65,48 +54,19 @@ const Intro = () => {
   ];
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(event.target.value);
-    setYoutubeId(event.target.value);
+    // setInputValue(event.target.value);
+    // setYoutubeId(event.target.value);
   };
 
-  //Chose racer number
-  const handlePredictionInputChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setPredictionInput(event.target.value);
-    //setYoutubeId(event.target.value);
-  };
-
-  //Choose amount of eth
-  const handleETHInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setEthAmount(Number(event.target.value));
-    //setYoutubeId(event.target.value);
-  };
-
-  //Choose amount of Ape Insurance
-  const handleApeInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setApeAmount(Number(event.target.value));
-    //setYoutubeId(event.target.value);
-  };
-
-  const handleSubmit = () => {
-    // Handle the submission of the YouTube ID here
-    sendRequest();
-    // console.log("Value:", inputValue);
-  };
-
-  const handleBet = async () => {
-    //const parsedEth = ethers.utils.parseEther() || 0;
-    console.log("Prediction Input: ", predictionInput);
-    console.log("ETH Amount: ", ethAmount);
-    console.log("Ape Amount: ", apeAmount);
+  const mintTheNFT = async (nftNum:number) => {
     try {
+      console.log("NFT Number:", nftNum);
       const { hash } = await writeContract({
         address: contractAddress,
-        abi: PredictionContract.abi,
-        functionName: "placeBet",
-        args: [predictionInput, parseEther(apeAmount.toString())], //set positions
-        value: parseEther(ethAmount.toString()),
+        abi: Snowfight.abi,
+        functionName: "claimNFT",
+        args: [nftNum], 
+        //  value: parseEther(ethAmount.toString()),
       });
       setLoading(true);
       await waitForTransaction({
@@ -115,44 +75,6 @@ const Intro = () => {
 
       setLoading(false);
       setMinted(true);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const sendRequest = async () => {
-    try {
-      let params = await generateParameters();
-      const { hash } = await writeContract({
-        address: contractAddress,
-        abi: PredictionContract.abi,
-        functionName: "makeRequest",
-        args: [airnode, endPoint, contractAddress, sponsorWallet, params],
-      });
-      setLoading(true);
-      await waitForTransaction({
-        hash,
-      });
-
-      setLoading(false);
-      setMinted(true);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const generateParameters = async () => {
-    try {
-      const params = [
-        { type: "string", name: "seasonID", value: "6" },
-        { type: "string", name: "_path", value: "data.0.id" },
-        { type: "string", name: "_type", value: "int256" },
-      ];
-
-      const encodedData = encode(params);
-      //console.log("Decoded data:", decode(encodedData));
-      console.log("Encoded data:", encodedData);
-      return encodedData;
     } catch (error) {
       console.log(error);
     }
@@ -183,7 +105,7 @@ const Intro = () => {
                         {/* Image Gallery */}
                         <div className="container mx-auto p-4">
                           <div className="flex flex-row justify-between">
-                            {images.map((image, index) => (
+                            {images.map((image, index:number) => (
                               <div
                                 key={index}
                                 className="max-w-xs flex flex-col items-center"
@@ -196,7 +118,9 @@ const Intro = () => {
                                 <p className="text-center mt-2">
                                   {image.description}
                                 </p>
-                                <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded my-4">
+                                <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded my-4" 
+                                  onClick={() => {mintTheNFT(index);}} >
+                                    
                                   {image.buttonText}
                                 </button>
                               </div>
