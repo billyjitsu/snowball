@@ -80,6 +80,21 @@ const Intro = () => {
     }
   };
 
+  const checkIfUserHasMinted = async () => {
+    try {
+      const hasMinted = await readContract({
+        address: contractAddress,
+        abi: Snowfight.abi,
+        functionName: "checkIfTargetHasNFT",
+        args: [address],
+      });
+      console.log("Has Minted:", hasMinted);
+      return hasMinted;
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   // useEffect(() => {
   //   handleBet(position);
   // }, [position]);
