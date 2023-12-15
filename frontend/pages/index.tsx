@@ -4,6 +4,7 @@ import Head from "next/head";
 import styles from "../styles/Home.module.css";
 import NAV from "../components/Nav";
 import Hero from "../components/Intro";
+import Fight from "../components/Fight";
 
 const Home: NextPage = () => {
   return (
@@ -19,7 +20,8 @@ const Home: NextPage = () => {
 
       <main>
         <NAV />
-        <Hero />
+
+        <Fight />
       </main>
 
       {/* <footer className={styles.footer}>

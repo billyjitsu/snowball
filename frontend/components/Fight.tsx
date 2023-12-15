@@ -17,78 +17,68 @@ import {
 import React, { useState, useEffect } from "react";
 import LoadingScreen from "./Loading";
 import { parseEther } from "viem";
-import { encode, decode } from '@api3/airnode-abi';
-import PredictionContract from "../contract/contract.json";
-import ApeContract from "../contract/ape.json";
-
+import Snowfight from "../contract/contract.json";
 
 const Fight = () => {
   const { address, isConnected } = useAccount();
   const [loading, setLoading] = useState<boolean>(false);
   const [minted, setMinted] = useState<boolean>(false);
-  const [position, setPosition] = useState<number>(0);
-  const [inputValue, setInputValue] = useState<string>("");
-  const [predictionInput, setPredictionInput] = useState<string>("");
-  const [apeAmount, setApeAmount] = useState<number>(0);
-  const [ethAmount, setEthAmount] = useState<number>(0);
-  const [youtubeId, setYoutubeId] = useState<string>("");
+  const [nftData, setNftData] = useState<any>(null);
+  const [defenderData, setDefenderData] = useState<any>(null);
+  const [defenderAddress, setDefenderAddress] = useState<string>("");
 
-  const contractAddress = "0xBA18f2DC2Ce0B971f33236fdf76E227bf9D8dDBd";
-  //Constants for ainrnod deployed to Base Testnet
-  //taken from the sportsmonk airnode configes
-  const airnode = "0xbBaf8B6C5d1C9fBCBf2A45f4b7b450415F936a92";
-  // This call is season winner endpoint
-  const endPoint = "0x6e58ace4ab94d28da59ec1da675b513cc21a3ca9656228c0b052563a2eb88b3e";
-  const sponsorWallet = "0x6c33312c753cAc450fD800D297E019135895bc0B";
+  const contractAddress = "0x893b67416Df9D9d0cD64f1e1B484Cc7eAAfd3195";
 
   const contractConfig = {
     address: contractAddress,
-    abi: PredictionContract.abi,
+    abi: Snowfight.abi,
   };
 
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(event.target.value);
-    setYoutubeId(event.target.value);
+  const handleChange = (event) => {
+    setDefenderAddress(event.target.value);
   };
 
-  //Chose racer number
-  const handlePredictionInputChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setPredictionInput(event.target.value);
-    //setYoutubeId(event.target.value);
+  // Optional: Validate the input as Ethereum address or ENS name
+  const isValidAddress = (input) => {
+    // Basic validation logic (can be expanded)
+    return input.length === 42 || input.endsWith(".eth");
   };
 
-  //Choose amount of eth
-  const handleETHInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setEthAmount(Number(event.target.value));
-    //setYoutubeId(event.target.value);
-  };
+  // //Chose racer number
+  // const handlePredictionInputChange = (
+  //   event: React.ChangeEvent<HTMLInputElement>
+  // ) => {
+  //   setPredictionInput(event.target.value);
+  //   //setYoutubeId(event.target.value);
+  // };
 
-  //Choose amount of Ape Insurance
-  const handleApeInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setApeAmount(Number(event.target.value));
-    //setYoutubeId(event.target.value);
-  };
+  // //Choose amount of eth
+  // const handleETHInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  //   setEthAmount(Number(event.target.value));
+  //   //setYoutubeId(event.target.value);
+  // };
+
+  // //Choose amount of Ape Insurance
+  // const handleApeInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  //   setApeAmount(Number(event.target.value));
+  //   //setYoutubeId(event.target.value);
+  // };
 
   const handleSubmit = () => {
     // Handle the submission of the YouTube ID here
-    sendRequest();
-   // console.log("Value:", inputValue);
+    // sendRequest();
+    // console.log("Value:", inputValue);
   };
 
-  const handleBet = async () => {
-    //const parsedEth = ethers.utils.parseEther() || 0;
-    console.log("Prediction Input: ", predictionInput);
-    console.log("ETH Amount: ", ethAmount);
-    console.log("Ape Amount: ", apeAmount);
+  const mintTheNFT = async (nftNum: number) => {
     try {
+      console.log("NFT Number:", nftNum);
       const { hash } = await writeContract({
         address: contractAddress,
-        abi: PredictionContract.abi,
-        functionName: "placeBet",
-        args: [predictionInput, parseEther((apeAmount).toString())], //set positions
-        value: parseEther((ethAmount).toString()),
+        abi: Snowfight.abi,
+        functionName: "claimNFT",
+        args: [nftNum],
+        //  value: parseEther(ethAmount.toString()),
       });
       setLoading(true);
       await waitForTransaction({
@@ -102,48 +92,52 @@ const Fight = () => {
     }
   };
 
-  const sendRequest = async () => {
+  const checkWhichNFT = async () => {
     try {
-      let params = await generateParameters();
-      const { hash } = await writeContract({
+      const hasMinted = await readContract({
         address: contractAddress,
-        abi: PredictionContract.abi,
-        functionName: "makeRequest",
-        args: [airnode, endPoint, contractAddress, sponsorWallet, params],
+        abi: Snowfight.abi,
+        functionName: "checkIfUserNFT",
+        args: [address],
       });
-      setLoading(true);
-      await waitForTransaction({
-        hash,
-      });
-
-      setLoading(false);
-      setMinted(true);
+      // console.log("Has Minted:", hasMinted);
+      return hasMinted;
     } catch (error) {
       console.log(error);
     }
   };
 
-  const generateParameters = async () => {
-    try {
-      const params = [
-        { type: "string", name: "seasonID", value: "6" },
-        { type: "string", name: "_path", value: "data.0.id" },
-        { type: "string", name: "_type", value: "int256" },
-     ];
-     
-     const encodedData = encode(params);
-     //console.log("Decoded data:", decode(encodedData));
-     console.log("Encoded data:", encodedData);
-     return encodedData;
-
-    } catch (error) {
-      console.log(error);
+  useEffect(() => {
+    interface MintedData {
+      name: string;
+      imageURI: string;
+      hp: number;
+      attackDamage: number;
+      defense: number;
+      evade: number;
+      // Add other properties if needed
     }
-  };
 
-  // useEffect(() => {
-  //   handleBet(position);
-  // }, [position]);
+    const fetchData = async () => {
+      if (isConnected) {
+        try {
+          const mintedData: MintedData = (await checkWhichNFT()) as MintedData;
+          setNftData(mintedData);
+          // console.log("Mint status:", mintedData);
+          // console.log("Image:", mintedData.imageURI);
+          // console.log("Name:", mintedData.name);
+          // console.log("Health:", mintedData.hp.toString());
+          // console.log("Attack:", mintedData.attackDamage.toString());
+          // console.log("Defense:", mintedData.defense.toString());
+          // console.log("Evade:", mintedData.evade.toString());
+        } catch (error) {
+          console.error("Error fetching mint status:", error);
+        }
+      }
+    };
+
+    fetchData();
+  }, [isConnected]);
 
   return (
     <div className="bg-black h-screen w-full ">
@@ -157,135 +151,56 @@ const Fight = () => {
                     {!loading && !minted && (
                       <>
                         <h1 className="text-3xl md:text-5xl font-bold text-center text-white ">
-                          Place Your Prediction
+                          Ready your snowball
                         </h1>
-                        <p className="text-white text-center text-xl">
-                          F1 Season Six Grand Prix
-                        </p>
-
-                        <div className="overflow-x-auto relative">
-                          <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-                            <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                              <tr>
-                                <th scope="col" className="py-3 px-6">
-                                  Name
-                                </th>
-                                <th scope="col" className="py-3 px-6">
-                                  Number
-                                </th>
-                                <th scope="col" className="py-3 px-6">
-                                  Team
-                                </th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                                <td className="py-4 px-6">Max Verstappen</td>
-                                <td className="py-4 px-6">1</td>
-                                <td className="py-4 px-6">Red Bull Racing</td>
-                              </tr>
-                              <tr className="bg-gray-50 dark:bg-gray-900">
-                                <td className="py-4 px-6">Logan Sargeant</td>
-                                <td className="py-4 px-6">2</td>
-                                <td className="py-4 px-6">Williams</td>
-                              </tr>
-                              <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                                <td className="py-4 px-6">Daniel Ricciardo</td>
-                                <td className="py-4 px-6">3</td>
-                                <td className="py-4 px-6">AlphaTauri</td>
-                              </tr>
-                              <tr className="bg-gray-50 dark:bg-gray-900">
-                                <td className="py-4 px-6">Lando Norris</td>
-                                <td className="py-4 px-6">4</td>
-                                <td className="py-4 px-6">McLaren</td>
-                              </tr>
-                            </tbody>
-                          </table>
-                        </div>
-
-                        {/* <p className="text-white text-center">
-                          Using an offchain oracle, we will determine the number
-                          of views in a trustless manner
+                        {/* <p className="text-white text-center text-xl">
+                          May the odds be in your favor
                         </p> */}
 
-                        <div className="flex flex-col justify-center items-center">
+                        {/* Image  */}
+                        <div className="container flex flex-row mx-auto p-4">
+                          {/* Attacker */}
+                          {nftData && (
+                            <div className="nft-data-container flex flex-col items-center">
+                              <img
+                                src={nftData.imageURI}
+                                alt={nftData.name}
+                                className="w-1/2 h-auto"
+                              />
+                              <div className="nft-data-text mt-1 text-center">
+                                <h3 className="text-2xl font-bold">
+                                  {nftData.name}
+                                </h3>
+                                <p className="text-sm">
+                                  Health: {nftData.hp.toString()}
+                                </p>
+                                <p className="text-sm">
+                                  Attack: {nftData.attackDamage.toString()}
+                                </p>
+                                <p className="text-sm">
+                                  Defense: {nftData.defense.toString()}
+                                </p>
+                                <p className="text-sm">
+                                  Evade: {nftData.evade.toString()}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                          {/* Defender */}
                           <div>
-                            <p className="text-white ">
-                              {" "}
-                              Place your prediction
-                            </p>
                             <input
                               type="text"
-                              placeholder="Racer ID Number"
-                              value={predictionInput}
-                              onChange={handlePredictionInputChange}
-                              className="border px-2 py-1"
+                              value={defenderAddress}
+                              onChange={handleChange}
+                              placeholder="Enter Ethereum Address or ENS Name"
+                              className="w-full p-2 border border-gray-300 rounded"
                             />
-                          </div>
-
-                          <div>
-                            <p className="text-white "> ETH Wager</p>
-                            <input
-                              type="number"
-                              placeholder="ETH Amount"
-                              value={ethAmount}
-                              onChange={handleETHInputChange}
-                              className="border px-2 py-1"
-                            />
-                          </div>
-
-                          <div>
-                            <p className="text-white ">
-                              {" "}
-                              Insure with Ape Coin?
-                            </p>
-                            <input
-                              type="text"
-                              placeholder="Insure Position with APE coin?"
-                              value={apeAmount}
-                              onChange={handleApeInputChange}
-                              className="border px-2 py-1"
-                            />
-                            {apeAmount > 0 && (
-                              <button
-                                //  onClick={handleSubmit} //place bet
-                                className="bg-blue-500 px-4 py-2 text-white ml-2"
-                              >
-                                Allow
-                              </button>
+                            {defenderAddress && !isValidAddress(defenderAddress) && (
+                              <p className="text-red-500">
+                                Invalid address or ENS name
+                              </p>
                             )}
                           </div>
-                          <button
-                            onClick={handleBet} //place bet
-                            className="bg-blue-500 px-4 py-2 text-white ml-2"
-                          >
-                            Submit
-                          </button>
-                        </div>
-
-                        <div className="items-center text-center pt-5">
-                          <p className="text-white "> After race results</p>
-                          {/* <input
-                            type="text"
-                            placeholder="Enter YouTube ID"
-                            value={inputValue}
-                            onChange={handleInputChange}
-                            className="border px-2 py-1"
-                          /> */}
-
-                          <button
-                            onClick={handleSubmit}
-                            className="bg-blue-500 px-4 py-2 text-white ml-2"
-                          >
-                            Pull the results
-                          </button>
-
-                          {/* <button
-                            onClick={generateParameters}
-                            className="bg-blue-500 px-4 py-2 text-white ml-2"
-                          >
-                            test
-                          </button> */}
                         </div>
                       </>
                     )}

@@ -19,8 +19,7 @@ import LoadingScreen from "./Loading";
 import { parseEther } from "viem";
 import { encode, decode } from "@api3/airnode-abi";
 import Snowfight from "../contract/contract.json";
-import ApeContract from "../contract/ape.json";
-import { on } from "events";
+
 
 const Intro = () => {
   const { address, isConnected } = useAccount();
