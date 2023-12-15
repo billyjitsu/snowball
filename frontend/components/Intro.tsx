@@ -53,11 +53,6 @@ const Intro = () => {
     },
   ];
 
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    // setInputValue(event.target.value);
-    // setYoutubeId(event.target.value);
-  };
-
   const mintTheNFT = async (nftNum:number) => {
     try {
       console.log("NFT Number:", nftNum);
@@ -88,16 +83,29 @@ const Intro = () => {
         functionName: "checkIfTargetHasNFT",
         args: [address],
       });
-      console.log("Has Minted:", hasMinted);
+      // console.log("Has Minted:", hasMinted);
       return hasMinted;
     } catch (error) {
       console.log(error);
     }
   }
 
-  // useEffect(() => {
-  //   handleBet(position);
-  // }, [position]);
+  useEffect(() => {
+    const fetchData = async () => {
+      if (isConnected) {
+        try {
+          const mintedData = await checkIfUserHasMinted();
+          console.log("Mint status:", mintedData);
+          // You can set state or perform other actions based on mintedData here
+        } catch (error) {
+          console.error("Error fetching mint status:", error);
+        }
+      }
+    };
+  
+    fetchData();
+  }, [isConnected]);
+  
 
   return (
     <div className="bg-black h-screen w-full ">
