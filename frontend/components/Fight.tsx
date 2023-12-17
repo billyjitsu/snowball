@@ -18,6 +18,7 @@ import React, { useState, useEffect } from "react";
 import LoadingScreen from "./Loading";
 import { parseEther } from "viem";
 import Snowfight from "../contract/contract.json";
+import NFTDataDisplay from "./NftCard";
 
 const Fight = () => {
   const { address, isConnected } = useAccount();
@@ -44,7 +45,12 @@ const Fight = () => {
     return input.length === 42 || input.endsWith(".eth");
   };
 
-  
+  const getnftdata = async (newAddress: string) => {
+    console.log("Defender Address:", newAddress);
+    const returnedData = await checkOpponentNFT(newAddress);
+    console.log("Returned Data:", returnedData);
+    setDefenderData(returnedData);
+  };
 
   const mintTheNFT = async (nftNum: number) => {
     try {
@@ -83,20 +89,27 @@ const Fight = () => {
     }
   };
 
-  const checkOpponentNFT = async () => { 
+  const checkOpponentNFT = async (newAddress: string) => {
     try {
       const hasMinted = await readContract({
         address: contractAddress,
         abi: Snowfight.abi,
         functionName: "checkIfUserNFT",
-        args: [defenderAddress],
+        args: [newAddress],
       });
       // console.log("Has Minted:", hasMinted);
       return hasMinted;
     } catch (error) {
       console.log(error);
     }
-  }
+  };
+
+  useEffect(() => {
+    if (isValidAddress(defenderAddress)) {
+      console.log("Valid address:", defenderAddress);
+      getnftdata(defenderAddress);
+    }
+  }, [defenderAddress]);
 
   useEffect(() => {
     interface MintedData {
@@ -148,42 +161,35 @@ const Fight = () => {
                         </p> */}
 
                       {/* Image  */}
-                      <div className="container flex flex-row mx-auto p-4">
+                      <div className="flex flex-col md:flex-row items-center justify-around w-full px-4 md:px-8">
                         {/* Attacker */}
                         {nftData && (
-                          <div className="nft-data-container flex flex-col items-center">
-                            <img
-                              src={nftData.imageURI}
-                              alt={nftData.name}
-                              className="w-1/2 h-auto"
-                            />
-                            <div className="nft-data-text mt-1 text-center">
-                              <h3 className="text-2xl font-bold">
-                                {nftData.name}
-                              </h3>
-                              <p className="text-sm">
-                                Health: {nftData.hp.toString()}
-                              </p>
-                              <p className="text-sm">
-                                Attack: {nftData.attackDamage.toString()}
-                              </p>
-                              <p className="text-sm">
-                                Defense: {nftData.defense.toString()}
-                              </p>
-                              <p className="text-sm">
-                                Evade: {nftData.evade.toString()}
-                              </p>
-                            </div>
+                          <div className="flex flex-col items-center">
+                            <NFTDataDisplay nftData={nftData} />
                           </div>
                         )}
 
                         {/* VS */}
-                        <div className="flex flex-col items-center justify-center">
-                          <h1 className="text-6xl font-bold text-white ">VS</h1>
-                        </div>
+                        {defenderData && (
+                          <div className="flex flex-col items-center justify-center">
+                            <h1 className="text-6xl font-bold text-white ">
+                              VS
+                            </h1>
+                          </div>
+                        )}
 
                         {/* Defender */}
-                        <div className="flex flex-col space-y-2 md:ml-8 w-full md:w-1/2 items-center justify-center mb-24">
+                        {defenderData && (
+                          <div className="flex flex-col items-center">
+                            <NFTDataDisplay nftData={defenderData} />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Fillable Input */}
+                      <div className="mt-6 w-full flex flex-col justify-center">
+                        {/* <p className="text-center">Choose your Victim</p> */}
+                        <div className="w-full text-center">
                           <input
                             type="text"
                             value={defenderAddress}
@@ -199,6 +205,19 @@ const Fight = () => {
                             )}
                         </div>
                       </div>
+
+                      {/* Button */}
+                      {defenderAddress && isValidAddress(defenderAddress) && (
+                      <div className="flex flex-col items-center justify-center">
+                        <button
+                          type="button"
+                          onClick={() => mintTheNFT(1)}
+                          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded my-4"
+                        >
+                          <p className="text-center">Attack</p>
+                        </button>
+                      </div>
+                      )}
                     </>
                   )}
 
