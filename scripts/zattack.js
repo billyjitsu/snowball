@@ -19,7 +19,7 @@ async function main() {
   const attacker = "0xe2b8651bF50913057fF47FC4f02A8e12146083B8";
   const victim = "0x9263bFf6ACCb60E83254E95220e7637465298171";
   // Connect to a provider (e.g., Infura, Alchemy)
-  const provider = new ethers.JsonRpcProvider(process.env.SEPOLIA_RPC_URL);
+  const provider = new ethers.JsonRpcProvider(process.env.BLAST_SEPOLIOA_RPC_URL);
   // Use your private key (keep this secure!)
   const privateKey = process.env.PRIVATE_KEY;
   const wallet = new ethers.Wallet(privateKey, provider);

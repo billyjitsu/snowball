@@ -4,8 +4,13 @@ pragma solidity ^0.8.10;
 import "@api3/airnode-protocol/contracts/rrp/requesters/RrpRequesterV0.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./SnowDay.sol";
+import "./interface/IBlast.sol";
 
 contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
+
+    // Create interface for blast to call chain functions
+    IBlast public constant BLAST = IBlast(0x4300000000000000000000000000000000000002);
+
     address public airnode;
     bytes32 public endpointIdUint256;
     address public sponsorWallet;
@@ -29,9 +34,13 @@ contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
     )
         RrpRequesterV0(_airnodeRrp)
         SnowDay(characterNames, characterImageURIs, characterHp, characterAttack, characterDefense, characterEvade)
-    {}
+    {
+        // Setup Blast network yield generation and claimable gas
+        BLAST.configureAutomaticYield(); //contract balance will grow automatically if it holds at least 1ETH
+        BLAST.configureClaimableGas();  //Set to claim all gas when contract uses gas
+    }
 
-    function setRequestParameters(address _airnode, bytes32 _endpointIdUint256, address _sponsorWallet) external {
+    function setRequestParameters(address _airnode, bytes32 _endpointIdUint256, address _sponsorWallet) external onlyOwner {
         airnode = _airnode;
         endpointIdUint256 = _endpointIdUint256;
         sponsorWallet = _sponsorWallet;
@@ -70,6 +79,9 @@ contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
         if (potentialDamage > player.hp) {
             _burn(nftTokenIdOfPlayer);
             emit NFTBurned(_victim, nftTokenIdOfPlayer, _attacker);
+            // return the money 
+            (bool success, ) = payable(_victim).call{value: 0.05 ether}("");
+            require(success, "Payment not sent");
             // console.log("Player has been burned");
             // console.log("Balance of Victim: %s", balanceOf(_victim));
         } else {
@@ -103,4 +115,17 @@ contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
     function withdraw() external {
         airnodeRrp.requestWithdrawal(airnode, sponsorWallet);
     }
+
+    // Blast chain specific function to claim the gas this contract has used
+    function claimMyContractsGas() external onlyOwner {
+        BLAST.claimAllGas(address(this), msg.sender);
+    }
+
+    function withdrawContract() external  {
+        (bool success, ) = payable(msg.sender).call{value: address(this).balance}("");
+        require(success, "Payment not sent");
+    }
+
+    // fund contract with extra ETH
+    receive() external payable {}
 }

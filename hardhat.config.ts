@@ -46,6 +46,11 @@ networks: {
     // gas: 200000000,
     // gasPrice: 100000000000,
   },
+  blastsepolia: {
+    url: `${process.env.BLAST_SEPOLIOA_RPC_URL}`,
+    accounts: [`${process.env.PRIVATE_KEY}`],
+    gasPrice: 1000000000,
+  },
   
   // mantle: {
   //   url: "https://rpc.mantle.xyz", //mainnet

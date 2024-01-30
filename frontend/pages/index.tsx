@@ -20,7 +20,7 @@ const Home: NextPage = () => {
 
       <main>
         <NAV />
-
+        <Hero />
         <Fight />
       </main>
 

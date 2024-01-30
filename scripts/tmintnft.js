@@ -12,7 +12,7 @@ async function main() {
   // const SponsorWallet = "0x2bEF014Ad8Ca5eFB9D06d483590812c97196eC1F";
 
   // Connect to a provider (e.g., Infura, Alchemy)
-  const provider = new ethers.JsonRpcProvider(process.env.SEPOLIA_RPC_URL);
+  const provider = new ethers.JsonRpcProvider(process.env.BLAST_SEPOLIOA_RPC_URL);
   // Use your private key (keep this secure!)
   const privateKey = process.env.PRIVATE_KEY;
   const privateKey2 = process.env.PRIVATE_KEY2;

@@ -12,6 +12,8 @@ error AlreadyHasNFT();
 error EnemyNeedsNFT();
 error YouNeedAnNFT();
 error CharacterMustHaveHP();
+error IncorrectEtherValue();
+
 
 contract SnowDay is ERC721, Ownable {
     struct CharacterAttributes {
@@ -47,7 +49,7 @@ contract SnowDay is ERC721, Ownable {
         uint256[] memory characterAttack,
         uint256[] memory characterDefense,
         uint256[] memory characterEvade
-    ) ERC721("Snowday", "PPS") {
+    ) ERC721("Snowday", "SNOW") {
         for (uint256 i = 0; i < characterNames.length; i += 1) {
             defaultCharacters.push(
                 CharacterAttributes({
@@ -64,8 +66,9 @@ contract SnowDay is ERC721, Ownable {
         }
     }
 
-    function claimNFT(uint256 _characterIndex) external {
+    function claimNFT(uint256 _characterIndex) external payable {
         if (isGamePaused) revert Paused();
+        if (msg.value < 0.05 ether) revert IncorrectEtherValue();
         if (balanceOf(msg.sender) > 0) revert AlreadyHasNFT();
 
         _mint(msg.sender, nextTokenId);
