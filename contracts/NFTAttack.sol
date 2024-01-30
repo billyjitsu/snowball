@@ -6,6 +6,8 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./SnowDay.sol";
 import "./interface/IBlast.sol";
 
+error TargetReachedDailyLimit();
+
 contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
 
     // Create interface for blast to call chain functions
@@ -19,6 +21,9 @@ contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
 
     mapping(bytes32 => bool) public expectingRequestWithIdToBeFulfilled;
     mapping(bytes32 => address[2]) whoToHit;
+    //Keep track of how many attacks an NFT has taken in a day
+    mapping(address => mapping(uint256 => uint256)) public dailyAttacks;
+
 
     event RequestUint256(bytes32 indexed requestId);
     event ReceivedUint256(bytes32 indexed requestId, uint256 response);
@@ -50,6 +55,15 @@ contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
         if (isGamePaused) revert Paused();
         if (balanceOf(msg.sender) == 0) revert YouNeedAnNFT();
         if (balanceOf(_victim) == 0) revert EnemyNeedsNFT();
+
+         // Get today's date as a unique identifier
+        uint256 today = getCurrentDay();
+
+        // Check if the target has been attacked 3 times today
+        if (dailyAttacks[_victim][today] >= 3) revert TargetReachedDailyLimit();
+
+        // Increase the attack count for today
+        dailyAttacks[_victim][today]++;
         //request the number
         //hit(_victim, msg.sender);
         makeRequestUint256(_victim, msg.sender);
@@ -111,6 +125,12 @@ contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
         hit(whoToHit[requestId][0], whoToHit[requestId][1], randomInRange);
         emit ReceivedUint256(requestId, qrngUint256);
     }
+
+    function getCurrentDay() public view returns (uint256) {
+        // Assuming the time is in UTC
+        return (block.timestamp / 86400); // Divide the current timestamp by the number of seconds in a day
+    }
+
 
     function withdraw() external {
         airnodeRrp.requestWithdrawal(airnode, sponsorWallet);
