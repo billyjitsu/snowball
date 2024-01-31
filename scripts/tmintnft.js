@@ -29,10 +29,25 @@ async function main() {
   const contract2 = new ethers.Contract(yourDeployedContractAddress, contractABI, wallet2);
 
   console.log(
-    "Minting NFTs..."
+    "Starting The Game..."
   );
 
-  const receipt = await contract.claimNFT(0);
+  //START the game
+  const starter = await contract.startGame();
+    let txReceiptStarter = await starter.wait();
+    if (txReceiptStarter.status === 0) {
+      throw new Error("Transaction failed");
+    }
+    console.log(
+      "Game Started"
+    );
+
+    console.log(
+      "Minting NFTs..."
+    );
+
+  //make sure to pay!!!!
+  const receipt = await contract.enterTheArena(0 ,{value: ethers.parseEther("0.05")});
 
   let txReceipt = await receipt.wait();
   if (txReceipt.status === 0) {
@@ -42,7 +57,7 @@ async function main() {
     "Owner Minted NFT"
   );
 
-  const receipt2 = await contract2.claimNFT(1);
+  const receipt2 = await contract2.enterTheArena(1, {value: ethers.parseEther("0.05")});
 
   let txReceipt2 = await receipt2.wait();
   if (txReceipt2.status === 0) {

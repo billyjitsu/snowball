@@ -10,18 +10,13 @@ async function main() {
   // https://docs.api3.org/reference/qrng/chains.html
   // Sepolia - 0x2ab9f26E18B64848cd349582ca3B55c2d06f507d
 
-
   // Airnode Parameters
   // https://docs.api3.org/reference/qrng/providers.html
 
-  // const airnodeAddress = "0x6238772544f029ecaBfDED4300f13A3c4FE84E1D";
-  // const airnodeXpub = "xpub6CuDdF9zdWTRuGybJPuZUGnU4suZowMmgu15bjFZT2o6PUtk4Lo78KGJUGBobz3pPKRaN9sLxzj21CMe6StP3zUsd8tWEJPgZBesYBMY7Wo";
-  // // const yourDeployedContractAddress = "Your Deployed Contract Address here";
-  // const yourDeployedContractAddress = "0x893b67416Df9D9d0cD64f1e1B484Cc7eAAfd3195";
   const amountInEther = 0.001;
 
   // Connect to a provider (e.g., Infura, Alchemy)
-  const provider = new ethers.JsonRpcProvider(process.env.SEPOLIA_RPC_URL);
+  const provider = new ethers.JsonRpcProvider(process.env.BLAST_SEPOLIOA_RPC_URL);
 
   // Use your private key (keep this secure!)
   const privateKey = process.env.PRIVATE_KEY;

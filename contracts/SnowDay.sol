@@ -11,8 +11,14 @@ error Paused();
 error AlreadyHasNFT();
 error EnemyNeedsNFT();
 error YouNeedAnNFT();
+error MintWindowPassed();
+error GameHasNotStarted();
+error GameHasEnded();
+error GameHasNotEnded();
 error CharacterMustHaveHP();
 error IncorrectEtherValue();
+error GameHasAlreadyStarted();
+
 
 
 contract SnowDay is ERC721, Ownable {
@@ -28,7 +34,11 @@ contract SnowDay is ERC721, Ownable {
     }
 
     uint256 public nextTokenId = 1;
+    uint256 startTime;
+    uint256 mintWindow;
+    uint256 endTime;
     bool public isGamePaused = false;
+    bool public gameInProgress = false;
 
     CharacterAttributes[] defaultCharacters;
 
@@ -66,9 +76,23 @@ contract SnowDay is ERC721, Ownable {
         }
     }
 
-    function claimNFT(uint256 _characterIndex) external payable {
+    function startTheGame() internal {
+        if (gameInProgress == true) revert GameHasAlreadyStarted();
+        gameInProgress = true;
+        startTime = block.timestamp;
+        mintWindow = startTime + 2 days;
+        endTime = startTime + 1 weeks;
+    }
+
+    function endTheGame()internal {
+        if (block.timestamp < endTime) revert GameHasNotEnded();
+        gameInProgress = false;
+    }
+
+    function claimNFT(uint256 _characterIndex) internal {
+        if (gameInProgress == false) revert GameHasNotStarted();
+        if (block.timestamp > mintWindow) revert MintWindowPassed();
         if (isGamePaused) revert Paused();
-        if (msg.value < 0.05 ether) revert IncorrectEtherValue();
         if (balanceOf(msg.sender) > 0) revert AlreadyHasNFT();
 
         _mint(msg.sender, nextTokenId);
@@ -86,7 +110,7 @@ contract SnowDay is ERC721, Ownable {
         });
 
         nftHolders[msg.sender] = nextTokenId;
-        nextTokenId++;
+        ++nextTokenId;
         emit CharacterNFTMinted(msg.sender, nextTokenId, _characterIndex);
     }
 
@@ -107,7 +131,7 @@ contract SnowDay is ERC721, Ownable {
                         charAttributes.name,
                         " -- NFT #: ",
                         Strings.toString(_tokenId),
-                        '", "description": "The Pudgy Snowball Game!", "image": "',
+                        '", "description": "The Snowball Game!", "image": "',
                         charAttributes.imageURI,
                         '", "attributes": [ {"trait_type": "Health Points", "value": ',
                         strHp,
@@ -203,11 +227,7 @@ contract SnowDay is ERC721, Ownable {
         defaultCharacters[_characterIndex].evade = _newEvade;
     }
 
-    function startGame() external onlyOwner {
-        isGamePaused = false;
-    }
-
-    function stopGame() external onlyOwner {
-        isGamePaused = true;
+    function pauseGameToggle() external onlyOwner {
+        isGamePaused = !isGamePaused;
     }
 }

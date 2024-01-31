@@ -7,22 +7,32 @@ import "./SnowDay.sol";
 import "./interface/IBlast.sol";
 
 error TargetReachedDailyLimit();
+error TooSoonAfterFinish();
+error TooManyAttacksToday();
 
 contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
 
     // Create interface for blast to call chain functions
     IBlast public constant BLAST = IBlast(0x4300000000000000000000000000000000000002);
 
+    uint256 public constant MAX_ATTACKS = 3;
+    uint256 public constant MAX_SHOTS_TAKEN = 3;
+    uint256 public priceOfNFTEscrow = 0.05 ether;
     address public airnode;
     bytes32 public endpointIdUint256;
     address public sponsorWallet;
 
     uint256 public randomInRange;
+    uint256 public totalNFTsLeft;
+    uint256 public winners;
 
     mapping(bytes32 => bool) public expectingRequestWithIdToBeFulfilled;
     mapping(bytes32 => address[2]) whoToHit;
     //Keep track of how many attacks an NFT has taken in a day
-    mapping(address => mapping(uint256 => uint256)) public dailyAttacks;
+    mapping(address => mapping(uint256 => uint256)) public dailyAttacksReceived;
+    //Tracking how many attacks the NFT has done
+    mapping(uint256 => mapping(uint256 => uint256)) public attacksSentDaily;
+
 
 
     event RequestUint256(bytes32 indexed requestId);
@@ -41,7 +51,8 @@ contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
         SnowDay(characterNames, characterImageURIs, characterHp, characterAttack, characterDefense, characterEvade)
     {
         // Setup Blast network yield generation and claimable gas
-        BLAST.configureAutomaticYield(); //contract balance will grow automatically if it holds at least 1ETH
+        // BLAST.configureAutomaticYield(); //contract balance will grow automatically if it holds at least 1ETH
+        BLAST.configureClaimableYield(); //The yield will be claimed later
         BLAST.configureClaimableGas();  //Set to claim all gas when contract uses gas
     }
 
@@ -51,19 +62,53 @@ contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
         sponsorWallet = _sponsorWallet;
     }
 
-    function throwSnowball(address _victim) external {
+    function startGame() external onlyOwner {
+        if (gameInProgress == true) revert GameHasAlreadyStarted();
+        // add a delay to start the game for winners to claim prizes before starting another
+        // if(block.timestamp < endTime + 1 days) revert TooSoonAfterFinish();
+        //reset the winners
+        winners = 0;
+        startTheGame();
+    }
+
+    function endGame() external onlyOwner {
+        if (gameInProgress == false) revert GameHasNotStarted();
+        if (block.timestamp < endTime) revert GameHasNotEnded();
+        endTheGame();
+        winners = totalNFTsLeft;
+    }
+
+    function enterTheArena(uint256 _characterIndex) external payable {
+        if (gameInProgress == false) revert GameHasNotStarted();
+        if (block.timestamp > mintWindow) revert MintWindowPassed();
         if (isGamePaused) revert Paused();
+        if (msg.value < priceOfNFTEscrow) revert IncorrectEtherValue();
+        if (balanceOf(msg.sender) > 0) revert AlreadyHasNFT();
+
+        claimNFT(_characterIndex);
+        ++totalNFTsLeft;
+    }
+
+    function throwSnowball(address _victim) external {
+        if (gameInProgress == false) revert GameHasNotStarted();
+        if (isGamePaused) revert Paused();
+        if (block.timestamp > endTime) revert GameHasEnded();
         if (balanceOf(msg.sender) == 0) revert YouNeedAnNFT();
         if (balanceOf(_victim) == 0) revert EnemyNeedsNFT();
 
+         // get the token ID of the nft attacking
+        uint256 nftTokenOfAttacker = nftHolders[msg.sender];
          // Get today's date as a unique identifier
         uint256 today = getCurrentDay();
 
+        if (attacksSentDaily[nftTokenOfAttacker][today] >= MAX_ATTACKS) revert TooManyAttacksToday();
         // Check if the target has been attacked 3 times today
-        if (dailyAttacks[_victim][today] >= 3) revert TargetReachedDailyLimit();
+        if (dailyAttacksReceived[_victim][today] >= MAX_SHOTS_TAKEN) revert TargetReachedDailyLimit();
 
         // Increase the attack count for today
-        dailyAttacks[_victim][today]++;
+        dailyAttacksReceived[_victim][today]++;
+        // Increment the attack count for the NFT for today
+        attacksSentDaily[nftTokenOfAttacker][today]++;
         //request the number
         //hit(_victim, msg.sender);
         makeRequestUint256(_victim, msg.sender);
@@ -93,8 +138,10 @@ contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
         if (potentialDamage > player.hp) {
             _burn(nftTokenIdOfPlayer);
             emit NFTBurned(_victim, nftTokenIdOfPlayer, _attacker);
+            //Subtract from the total NFTs left
+            --totalNFTsLeft;
             // return the money 
-            (bool success, ) = payable(_victim).call{value: 0.05 ether}("");
+            (bool success, ) = payable(_victim).call{value: priceOfNFTEscrow }("");
             require(success, "Payment not sent");
             // console.log("Player has been burned");
             // console.log("Balance of Victim: %s", balanceOf(_victim));
@@ -106,7 +153,7 @@ contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
         }
     }
 
-    function makeRequestUint256(address _victim, address _attacker) public {
+    function makeRequestUint256(address _victim, address _attacker) internal {
         bytes32 requestId = airnodeRrp.makeFullRequest(
             airnode, endpointIdUint256, address(this), sponsorWallet, address(this), this.fulfillUint256.selector, ""
         );
@@ -141,7 +188,29 @@ contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
         BLAST.claimAllGas(address(this), msg.sender);
     }
 
+    function claimYourPrize() external {
+        if (gameInProgress == true) revert GameHasNotEnded();
+        if (block.timestamp < endTime) revert GameHasNotEnded();
+        if (balanceOf(msg.sender) == 0) revert YouNeedAnNFT();
+        _burn(nftHolders[msg.sender]);
+
+        // calculate the yield
+        uint256 payout = calculatePayout();
+        uint256 reward = payout + priceOfNFTEscrow;
+        //when the game ends return all deposits back to owners
+        (bool success, ) = payable(msg.sender).call{value: reward}("");
+        require(success, "Payment not sent");
+    }
+
+    function calculatePayout() internal view returns (uint256) {  
+        uint256 earnedYield = BLAST.readClaimableYield(address(this));
+        uint256 payout = earnedYield / winners;
+        uint256 winnerPayout = payout * winners;
+        return winnerPayout;
+    }
+
     function withdrawContract() external  {
+        // put a limiting end game requirement to stop a rug pull
         (bool success, ) = payable(msg.sender).call{value: address(this).balance}("");
         require(success, "Payment not sent");
     }

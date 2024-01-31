@@ -63,15 +63,18 @@ networks: {
 
 },
 etherscan: {
-apiKey: process.env.ETHERSCAN_API_KEY || "",
+//apiKey: process.env.ETHERSCAN_API_KEY || "",
+apiKey: {
+  blastsepolia: process.env.ETHERSCAN_API_KEY || "", // apiKey is not required, just set a placeholder
+},
 customChains: [
   {
-      network: "mantleTest",
-      chainId: 5001,
-      urls: {
-      apiURL: "https://explorer.testnet.mantle.xyz/api",
-      browserURL: "https://explorer.testnet.mantle.xyz"
-      }
+    network: "blastsepolia",
+    chainId: 168587773,
+    urls: {
+      apiURL: "https://api.routescan.io/v2/network/testnet/evm/168587773/etherscan",
+      browserURL: "https://testnet.blastscan.io"
+    }
   }
   ]
 },
