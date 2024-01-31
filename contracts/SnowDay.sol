@@ -85,7 +85,7 @@ contract SnowDay is ERC721, Ownable {
     }
 
     function endTheGame()internal {
-        if (block.timestamp < endTime) revert GameHasNotEnded();
+       // if (block.timestamp < endTime) revert GameHasNotEnded();
         gameInProgress = false;
     }
 

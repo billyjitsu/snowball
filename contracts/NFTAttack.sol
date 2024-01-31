@@ -73,7 +73,7 @@ contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
 
     function endGame() external onlyOwner {
         if (gameInProgress == false) revert GameHasNotStarted();
-        if (block.timestamp < endTime) revert GameHasNotEnded();
+      //  if (block.timestamp < endTime) revert GameHasNotEnded();
         endTheGame();
         winners = totalNFTsLeft;
     }
@@ -101,16 +101,15 @@ contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
          // Get today's date as a unique identifier
         uint256 today = getCurrentDay();
 
-        if (attacksSentDaily[nftTokenOfAttacker][today] >= MAX_ATTACKS) revert TooManyAttacksToday();
+       // if (attacksSentDaily[nftTokenOfAttacker][today] >= MAX_ATTACKS) revert TooManyAttacksToday();
         // Check if the target has been attacked 3 times today
-        if (dailyAttacksReceived[_victim][today] >= MAX_SHOTS_TAKEN) revert TargetReachedDailyLimit();
+       // if (dailyAttacksReceived[_victim][today] >= MAX_SHOTS_TAKEN) revert TargetReachedDailyLimit();
 
         // Increase the attack count for today
         dailyAttacksReceived[_victim][today]++;
         // Increment the attack count for the NFT for today
         attacksSentDaily[nftTokenOfAttacker][today]++;
         //request the number
-        //hit(_victim, msg.sender);
         makeRequestUint256(_victim, msg.sender);
     }
 
@@ -122,9 +121,6 @@ contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
         uint256 nftTokenIdOfPlayer = nftHolders[_victim];
         CharacterAttributes storage attacker = nftHolderAttributes[nftTokenofAttacker];
         CharacterAttributes storage player = nftHolderAttributes[nftTokenIdOfPlayer];
-
-        // Make sure the player has more than 0 HP.
-        // if (player.hp == 0) revert CharacterMustHaveHP();
 
         // Adjust the hit chance based on evade
         if (_random > (50 - player.evade)) {
@@ -178,8 +174,7 @@ contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
         return (block.timestamp / 86400); // Divide the current timestamp by the number of seconds in a day
     }
 
-
-    function withdraw() external {
+    function withdrawSponsorWalletFunds() external {
         airnodeRrp.requestWithdrawal(airnode, sponsorWallet);
     }
 
@@ -190,7 +185,7 @@ contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
 
     function claimYourPrize() external {
         if (gameInProgress == true) revert GameHasNotEnded();
-        if (block.timestamp < endTime) revert GameHasNotEnded();
+        // if (block.timestamp < endTime) revert GameHasNotEnded();
         if (balanceOf(msg.sender) == 0) revert YouNeedAnNFT();
         _burn(nftHolders[msg.sender]);
 
@@ -209,10 +204,19 @@ contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
         return winnerPayout;
     }
 
-    function withdrawContract() external  {
+    function withdrawContractFunds() external  {
         // put a limiting end game requirement to stop a rug pull
         (bool success, ) = payable(msg.sender).call{value: address(this).balance}("");
         require(success, "Payment not sent");
+    }
+
+    function claimGasUsedByContract() external onlyOwner {
+        BLAST.claimAllGas(address(this), msg.sender);
+    }
+
+    function getYieldOnContract() view external returns (uint256){
+        uint256 yield = BLAST.readClaimableYield(address(this));
+        return yield;
     }
 
     // fund contract with extra ETH

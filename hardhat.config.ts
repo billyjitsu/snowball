@@ -52,15 +52,6 @@ networks: {
     gasPrice: 1000000000,
   },
   
-  // mantle: {
-  //   url: "https://rpc.mantle.xyz", //mainnet
-  //   accounts: [process.env.ACCOUNT_PRIVATE_KEY ?? ''],
-  //   },
-  //   mantleTest: {
-  //   url: "https://rpc.testnet.mantle.xyz", // testnet
-  //   accounts: [process.env.ACCOUNT_PRIVATE_KEY ?? '']
-  //   }
-
 },
 etherscan: {
 //apiKey: process.env.ETHERSCAN_API_KEY || "",
