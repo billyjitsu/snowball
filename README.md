@@ -91,7 +91,7 @@ The `fulfillUint256` is the function that is called when out number is returned 
 
 If you would like a much more detailed breakdown on the QRNG setup, please refer to this video for [step by step instructional]("https://www.youtube.com/watch?v=pV976MvviIA&t=904s")
 
-#### The Logic
+### The Logic
 
 The functions:
 - `startGame`: The external function that is callable only by the owner of the contract.  There are a few requirements we want to have in place to make sure the game runs smooth,  We don't want to restart a game if a game already is in progress with checking the boolean `gameInProgress`, we also want to have a delay when a game ends to allow users to claim their winnings.  This function then calls the internal `startTheGame` in SnowDay.sol that runs those logistics
