@@ -1,72 +1,89 @@
-# SnowDay & NFTAttack Contracts
+# The Last Standing
+
 
 ## Overview
-These Solidity contracts are designed for a blockchain-based game where players can mint, hold, and use NFTs (Non-Fungible Tokens) to engage in a game. The `SnowDay` contract handles the NFT aspects, including minting and tracking character attributes. The `NFTAttack` contract extends the functionality of `SnowDay` by allowing NFTs to interact in a game environment, including mechanics for attacking and defending.
-
-## SnowDay Contract
+Many NFTs enter, only a few survive.  Stake a small amount of ETH to join the game, survive until the end of the game and share the prize of the staked yield on Blast network.
 
 ### Key Features
-- **NFT Minting**: Allows players to mint character NFTs with unique attributes.
-- **Game States**: Manages different states of the game like paused, in progress, and ended.
-- **Character Attributes**: Each NFT has attributes like HP, attack damage, defense, etc.
-- **Ownership and Access Control**: Utilizes OpenZeppelin's `Ownable` for owner-specific functions.
+- **Free to play**:All users get their stake back after playing the game
+- **Prize increases with more players**: Yield is earned through staked ETH, so it encourages more players to join to get a share of the prize.
+- **Character Attributes**: All data is stored on chain, such as health status.
+- **Fair Play**: Using API3's QRNG (Random Numbers), we let everyone have a fair chance at winning the prize.
 
-### Functions
-- `startTheGame()`: Starts the game, setting up the necessary state.
-- `endTheGame()`: Ends the game.
-- `claimNFT(uint256 _characterIndex)`: Allows a user to mint a character NFT.
-- `tokenURI(uint256 _tokenId)`: Returns the URI for a token's metadata.
-- `addCharacter(...)`, `updateCharacterName(...)`, etc.: Functions for the owner to manage character attributes.
-- `pauseGameToggle()`: Allows the owner to pause/unpause the game.
+## SnowDay & NFTAttack Contracts
 
-### Events
-- `CharacterNFTMinted`: Emitted when a new character NFT is minted.
-- Other events related to the game state and character interactions.
-
-## NFTAttack Contract
-
-### Key Features
-- Extends `SnowDay` with additional game mechanics.
-- Integrates with `@api3/airnode-protocol` for external data requests.
-- Implements attack logic where NFTs can attack each other.
-- Manages yield and gas claim mechanics using the Blast network.
-
-### Functions
-- `startGame()`, `endGame()`: Start and end the game, respectively.
-- `enterTheArena(uint256 _characterIndex)`: Allows a player to enter the game by minting an NFT.
-- `throwSnowball(address _victim)`: Initiates an attack on another player's NFT.
-- `hit(address _victim, address _attacker, uint256 _random)`: Internal function to execute an attack.
-- `makeRequestUint256(...)`, `fulfillUint256(...)`: Functions to handle external data requests.
-- `claimYourPrize()`: Allows players to claim their prizes post-game.
-- `calculatePayout()`: Calculates the payout for winners.
-- `withdrawContractFunds()`: Withdraws funds from the contract.
-- `claimGasUsedByContract()`, `getYieldOnContract()`: Functions related to the Blast network for gas and yield management.
+### Important Functions
+- `startGame()`: Starts the game, setting up the necessary state to allow players to enter the game.
+- `endGame()`: Ends the game and allows winners to claim rewards.
+- `enterTheArena(uint256 _characterIndex)`: Allows a user to stake a small amount of ETH and claim an NFT to participate
+- `throwSnowball(address _victim)`: Choose another players NFT to "throw a snowball at", the goal is to knock out other players to receive a higher prize.
+- `claimYourPrize()`: Allows the winners to claim back their stake and any yield earned during the game.
 
 ### Events
-- `RequestUint256`, `ReceivedUint256`: Emitted during the external data request process.
-- Other events related to game mechanics like attacks and prize claiming.
+- `CharacterNFTMinted`: Emitted when a new character NFT is minted, can let others know a new player has enters
+- `MissedAttack`: Target received no damage
+- `SuccessfulAttack`: Target was hit and health is lowered
+- `NFTBurned`: Player is out of the game and their stake has been returned
 
-## Error Handling
-Both contracts use custom error messages for various fail states, improving the debugging process and user experience.
+## The Contracts
+The setup consists of 4 files.
+- Interface/IBlast.sol: This are there interfaces to take advantage of the unique Blast network's tools
+- lib/Base64.sol: Libary to allow us to encode our tokenURI intoa base64 format
+- SnowDay.sol: Base NFT contract - Setups of basic minting, and formating of the NFT structure
+- NFTAttack.sol: Front facing contract that sets up the yield and gas mode for blast network, handles the random number requests and sets the logic for the game play.
 
-## Requirements
-- Solidity ^0.8.10.
-- OpenZeppelin Contracts for ERC721, Ownable, and Strings utilities.
-- Hardhat for development and testing.
-- API3's Airnode protocol for off-chain data requests.
+## Snowday.sol
+The snowday contract is the NFT portion of the game.  It uses the standard ERC721 format while also keeping stats of the NFT on chain.  The image can be hosted externaly on a medium such as IPFS or Arweave.  It imports the BASE64.sol file to encode the tokenURI to squeeze in as much onchain data as we can in the evm on a single line return.
+On deployment the constructor requires the Names, Image URI, HP, Attack, Defense, and Evade stats for each character (standard setup is 3).
+The contract has internal functions for a front facing contract to add logic to.
+- start the game
+- end the game
+- mint an NFT
+- many getters for the front end to check on status such as HP
+- functions to update names and stats of each character
+- function to add new characters to the roster
 
-## Security Considerations
-- Ensure proper testing and auditing, especially for functions that handle ETH transactions and NFT minting.
-- Be cautious with external calls and data requests to avoid vulnerabilities.
+## NFTAttack.sol
+This contract has the blast yield strategy, game mechanics and random number management (using API3's QRNG)
+It imports IBlast.sol which is the standard interface contract for all contracts deploying to blast, the RrpRequesterV0.sol to handle the random number requests, the SnowDay contract with all the NFT functionality and Open Zeppelin's only owner.
 
+We interface BLASTs network contract with `IBlast public constant BLAST = IBlast(0x4300000000000000000000000000000000000002);` So we can call Blast function required.
+We follow it up with global variables we need for the logic of our game.
+Important ones to know are 
+airnode
+endpointIdUint256
+sponsorWallet
+These varialbes are used in the setup of are random number parameters.
+We have mappings that help keep track of our requests for random numbers
+A mapping of who the attacker is and who they are attacking
+Keeping track of how many times an NFT gets attacked daily
+Keeping track of how many times and NFT can attackdaily
 
+We have a few events to let us know that a request was made and that a response was received with our number
 
-1. **Contract Address:**
-   - [0xBA18f2DC2Ce0B971f33236fdf76E227bf9D8dDBd](https://goerli.basescan.org/address/0xba18f2dc2ce0b971f33236fdf76e227bf9d8ddbd)
+Our constructor has to satisfy a few of our import needs, our RrPRequesterV0 contract requires the `airnode` contract address specific to our chain.  You can find that [here](https://github.com/api3dao/airnode/blob/master/packages/airnode-protocol/deployments/blast-sepolia-testnet/AirnodeRrpV0.json) `0xD223DfDCb888CA1539bb3459a83c543A1608F038`
+Since we are importing in our `SnowDay` contract, we will also need to pass through all our names and stats
+Finally, in the body of our constructor we are choosing our Blast network settings.  In this case, we are choosing to have claimableYield and claimableGas.  This allows us to claim the yield held by the ETH in our contract at a separate time and the ability to claim gas used by the contract.
 
-2. **Sponsor Wallet:**
-   - [0x6c33312c753cAc450fD800D297E019135895bc0B](https://goerli.basescan.org/address/0x6c33312c753cAc450fD800D297E019135895bc0B)
+Focusing on the random number aspect, there are 3 functions that control this 
+- setRequestParameters
+- makeRequestUint256
+- fulfillUint256
 
-3. **APE Coin:**
-   - [0xb8EAa40a7976474a47bB48291FE569f383069FBc](https://goerli.basescan.org/address/0xb8eaa40a7976474a47bb48291fe569f383069fbc)
+The `setRequestParameters` function is only setup once, in which we tell our contract what we are asking for and who's going to pay for the gas.  In order to get true randomness, we must request a number from on offchain source.  Since validators can have the ability to roll back transactions, we can't do this on the same transaction or the game can be cheated.  Instead, we send a request for a number and a few blocks later the numbers comes in on another transaction.  The user pays for the request, but who pays for the response with the number transaction?  This is where our `sponsorWallet` comes in.  This is our relayer that pays for the gas when we return the value. (we will touch on how to generate a wallet later on)
+- You will need the airnode ID (available in the [docs]("https://docs.api3.org/reference/qrng/providers.html#testnet-random-numbers")): 0x6238772544f029ecaBfDED4300f13A3c4FE84E1D
+- The Endpoind type is the choice of using a single number or an arrary of random numbers.  This case we are only requesting one number so we will use the endpointIdUint256 (not the endpointUint256Array): `0x94555f83f1addda23fdaa7c74f27ce2b764ed5cc430c66f5ff1bcf39d583da36`
+
+- Then we will need the sponsor wallet, the wallet is generated by a script that uses your deployed contract's address. (We can generate until it is deployed).  To read more about this here is the reference [Sponsor Wallet Creation](https://docs.api3.org/reference/airnode/latest/packages/admin-cli.html#derive-sponsor-wallet-address)  You need to run a script that will grab the [extended public address]("https://docs.api3.org/reference/qrng/providers.html#testnet-random-numbers"): `xpub6CuDdF9zdWTRuGybJPuZUGnU4suZowMmgu15bjFZT2o6PUtk4Lo78KGJUGBobz3pPKRaN9sLxzj21CMe6StP3zUsd8tWEJPgZBesYBMY7Wo`
+- The airnode address: 0x6238772544f029ecaBfDED4300f13A3c4FE84E1D
+- Your deployed contracts address that will need the sponsoring: TBD when you deployed.
+Once the sponsor wallet is created, it will need to be funded with some gas to be able to pay for the returned number transaction.
+- For reference, there is a script called `fund.js` in the scripts folder that does this for you already, you will need to update the `variables.js` with you deployed contract address and the run the fund.js script.
+
+The `makeRequestUint256` is where our logic sends the request to get the random number.  Most of it is boiler plate code except the logic where we keep track of our target and the wallet that send the attack.  It is tied to a requestId so in case there are 10 different requests at the same time, we can keep track of each request.
+
+The `fulfillUint256` is the function that is called when out number is returned to us (from the sponsor wallet, hence the modifier of onlyAirnodeRrp). Once our number is received, we will input our logic and do something with our number.  In this case we will call another function within this function to see what damage our snowball did to our target.
+
+If you would like a much more detailed breakdown on the QRNG setup, please refer to this video for [step by step instructional]("https://www.youtube.com/watch?v=pV976MvviIA&t=904s")
+
 

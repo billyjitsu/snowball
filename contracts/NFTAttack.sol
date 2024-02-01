@@ -71,7 +71,7 @@ contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
         startTheGame();
     }
 
-    function endGame() external onlyOwner {
+    function endGame() external {
         if (gameInProgress == false) revert GameHasNotStarted();
       //  if (block.timestamp < endTime) revert GameHasNotEnded();
         endTheGame();
