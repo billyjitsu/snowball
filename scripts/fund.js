@@ -6,10 +6,6 @@ const { airnodeAddress, airnodeXpub, endPointAddress, yourDeployedContractAddres
 
 async function main() {
 
-  //Deploy it on the chain with the following providers
-  // https://docs.api3.org/reference/qrng/chains.html
-  // Sepolia - 0x2ab9f26E18B64848cd349582ca3B55c2d06f507d
-
   // Airnode Parameters
   // https://docs.api3.org/reference/qrng/providers.html
 

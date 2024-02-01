@@ -22,9 +22,11 @@ contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
     bytes32 public endpointIdUint256;
     address public sponsorWallet;
 
-    uint256 public randomInRange;
+    uint256 public randomInRange; //public variable to view the number returned
     uint256 public totalNFTsLeft;
     uint256 public winners;
+
+    uint256 public yieldCollected;
 
     mapping(bytes32 => bool) public expectingRequestWithIdToBeFulfilled;
     mapping(bytes32 => address[2]) whoToHit;
@@ -68,6 +70,8 @@ contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
         // if(block.timestamp < endTime + 1 days) revert TooSoonAfterFinish();
         //reset the winners
         winners = 0;
+        //reset yield
+        yieldCollected = 0;
         startTheGame();
     }
 
@@ -76,6 +80,8 @@ contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
       //  if (block.timestamp < endTime) revert GameHasNotEnded();
         endTheGame();
         winners = totalNFTsLeft;
+        yieldCollected = BLAST.readClaimableYield(address(this));
+        claimYieldGenerated();
     }
 
     function enterTheArena(uint256 _characterIndex) external payable {
@@ -174,10 +180,6 @@ contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
         return (block.timestamp / 86400); // Divide the current timestamp by the number of seconds in a day
     }
 
-    function withdrawSponsorWalletFunds() external {
-        airnodeRrp.requestWithdrawal(airnode, sponsorWallet);
-    }
-
     // Blast chain specific function to claim the gas this contract has used
     function claimMyContractsGas() external onlyOwner {
         BLAST.claimAllGas(address(this), msg.sender);
@@ -198,16 +200,15 @@ contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
     }
 
     function calculatePayout() internal view returns (uint256) {  
-        uint256 earnedYield = BLAST.readClaimableYield(address(this));
+        uint256 earnedYield = yieldCollected;
+        if (earnedYield == 0) return 0;
         uint256 payout = earnedYield / winners;
         uint256 winnerPayout = payout * winners;
         return winnerPayout;
     }
 
-    function withdrawContractFunds() external  {
-        // put a limiting end game requirement to stop a rug pull
-        (bool success, ) = payable(msg.sender).call{value: address(this).balance}("");
-        require(success, "Payment not sent");
+    function claimYieldGenerated() internal {
+		BLAST.claimAllYield(address(this), address(this));
     }
 
     function claimGasUsedByContract() external onlyOwner {
@@ -217,6 +218,16 @@ contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
     function getYieldOnContract() view external returns (uint256){
         uint256 yield = BLAST.readClaimableYield(address(this));
         return yield;
+    }
+
+    function withdrawSponsorWalletFunds() external {
+        airnodeRrp.requestWithdrawal(airnode, sponsorWallet);
+    }
+
+    function withdrawContractFunds() external  {
+        // put a limiting end game requirement to stop a rug pull
+        (bool success, ) = payable(msg.sender).call{value: address(this).balance}("");
+        require(success, "Payment not sent");
     }
 
     // fund contract with extra ETH

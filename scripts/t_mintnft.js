@@ -7,10 +7,6 @@ const { airnodeAddress, airnodeXpub, endPointAddress, yourDeployedContractAddres
 
 async function main() {
 
-  // const airnodeAddress = "0x6238772544f029ecaBfDED4300f13A3c4FE84E1D";
-  // const endPointAddress = "0x94555f83f1addda23fdaa7c74f27ce2b764ed5cc430c66f5ff1bcf39d583da36";
-  // const SponsorWallet = "0x2bEF014Ad8Ca5eFB9D06d483590812c97196eC1F";
-
   // Connect to a provider (e.g., Infura, Alchemy)
   const provider = new ethers.JsonRpcProvider(process.env.BLAST_SEPOLIOA_RPC_URL);
   // Use your private key (keep this secure!)
@@ -21,8 +17,6 @@ async function main() {
 
   // Smart contract ABI and address
   const contractABI = ABI.abi;
-  // //const contractAddress = "your_contract_address";
-  // const contractAddress = "0x893b67416Df9D9d0cD64f1e1B484Cc7eAAfd3195";
 
   // Create a contract instance
   const contract = new ethers.Contract(yourDeployedContractAddress, contractABI, wallet);
