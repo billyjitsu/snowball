@@ -27,10 +27,10 @@ Many NFTs enter, only a few survive.  Stake a small amount of ETH to join the ga
 
 ## The Contracts
 The setup consists of 4 files.
-- Interface/IBlast.sol: This are there interfaces to take advantage of the unique Blast network's tools
-- lib/Base64.sol: Libary to allow us to encode our tokenURI intoa base64 format
-- SnowDay.sol: Base NFT contract - Setups of basic minting, and formating of the NFT structure
-- NFTAttack.sol: Front facing contract that sets up the yield and gas mode for blast network, handles the random number requests and sets the logic for the game play.
+- `Interface/IBlast.sol`: This are there interfaces to take advantage of the unique Blast network's tools
+- `lib/Base64.sol`: Libary to allow us to encode our tokenURI intoa base64 format
+- `SnowDay.sol`: Base NFT contract - Setups of basic minting, and formating of the NFT structure
+- `NFTAttack.sol`: Front facing contract that sets up the yield and gas mode for blast network, handles the random number requests and sets the logic for the game play.
 
 ## Snowday.sol
 The snowday contract is the NFT portion of the game.  It uses the standard ERC721 format while also keeping stats of the NFT on chain.  The image can be hosted externaly on a medium such as IPFS or Arweave.  It imports the BASE64.sol file to encode the tokenURI to squeeze in as much onchain data as we can in the evm on a single line return.
@@ -45,14 +45,17 @@ The contract has internal functions for a front facing contract to add logic to.
 
 ## NFTAttack.sol
 This contract has the blast yield strategy, game mechanics and random number management (using API3's QRNG)
-It imports IBlast.sol which is the standard interface contract for all contracts deploying to blast, the RrpRequesterV0.sol to handle the random number requests, the SnowDay contract with all the NFT functionality and Open Zeppelin's only owner.
+- It imports `IBlast.sol` which is the standard interface contract for all contracts deploying to blast
+- the RrpRequesterV0.sol to handle the random number requests
+- the SnowDay contract with all the NFT functionality
+- Open Zeppelin's only owner.
 
 We interface BLASTs network contract with `IBlast public constant BLAST = IBlast(0x4300000000000000000000000000000000000002);` So we can call Blast function required.
 We follow it up with global variables we need for the logic of our game.
-Important ones to know are 
-airnode
-endpointIdUint256
-sponsorWallet
+Important ones to know are :
+- airnode
+- endpointIdUint256
+- sponsorWallet
 These varialbes are used in the setup of are random number parameters.
 We have mappings that help keep track of our requests for random numbers
 A mapping of who the attacker is and who they are attacking
