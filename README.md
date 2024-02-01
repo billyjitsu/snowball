@@ -56,6 +56,8 @@ Important ones to know are :
 - airnode
 - endpointIdUint256
 - sponsorWallet
+
+
 These varialbes are used in the setup of are random number parameters.
 We have mappings that help keep track of our requests for random numbers
 A mapping of who the attacker is and who they are attacking
