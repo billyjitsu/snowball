@@ -20,7 +20,7 @@ Many NFTs enter, only a few survive.  Stake a small amount of ETH to join the ga
 - `claimYourPrize()`: Allows the winners to claim back their stake and any yield earned during the game.
 
 ### Events
-- `CharacterNFTMinted`: Emitted when a new character NFT is minted, can let others know a new player has enters
+- `CharacterNFTMinted`: Emitted when a new character NFT is minted, can let others know a new player has entered the game
 - `MissedAttack`: Target received no damage
 - `SuccessfulAttack`: Target was hit and health is lowered
 - `NFTBurned`: Player is out of the game and their stake has been returned
