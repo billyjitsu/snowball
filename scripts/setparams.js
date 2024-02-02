@@ -1,8 +1,7 @@
 const ethers = require("ethers");
-const airnodeAdmin = require("@api3/airnode-admin");
 require("dotenv").config();
 const ABI = require("../artifacts/contracts/NFTAttack.sol/NFTAttack.json");
-const { airnodeAddress, airnodeXpub, endPointAddress, yourDeployedContractAddress, sponsorWallet } = require("./variables");
+const { airnodeAddress, endPointAddress, yourDeployedContractAddress, sponsorWallet } = require("./variables");
 
 
 async function main() {

@@ -19,8 +19,6 @@ error CharacterMustHaveHP();
 error IncorrectEtherValue();
 error GameHasAlreadyStarted();
 
-
-
 contract SnowDay is ERC721, Ownable {
     struct CharacterAttributes {
         uint256 characterIndex;
@@ -33,10 +31,13 @@ contract SnowDay is ERC721, Ownable {
         uint256 evade;
     }
 
+    uint256 public constant MINT_WINDOW = 2 days;
+    uint256 public constant TOTAL_TIME = 1 weeks;
     uint256 public nextTokenId = 1;
     uint256 startTime;
     uint256 mintWindow;
     uint256 endTime;
+    
     bool public isGamePaused = false;
     bool public gameInProgress = false;
 
@@ -76,19 +77,21 @@ contract SnowDay is ERC721, Ownable {
         }
     }
 
+    // Function to start the game with parameters of Mint window and minimum total time the game can be played
     function startTheGame() internal {
         if (gameInProgress == true) revert GameHasAlreadyStarted();
         gameInProgress = true;
         startTime = block.timestamp;
-        mintWindow = startTime + 2 days;
-        endTime = startTime + 1 weeks;
+        mintWindow = startTime + MINT_WINDOW;
+        endTime = startTime + TOTAL_TIME;
     }
 
-    function endTheGame()internal {
+    function endTheGame() internal {
        // if (block.timestamp < endTime) revert GameHasNotEnded();
         gameInProgress = false;
     }
 
+    // Mints the NFT for user, loads the attributes to the struct and emits the event
     function claimNFT(uint256 _characterIndex) internal {
         if (gameInProgress == false) revert GameHasNotStarted();
         if (block.timestamp > mintWindow) revert MintWindowPassed();
@@ -114,6 +117,7 @@ contract SnowDay is ERC721, Ownable {
         emit CharacterNFTMinted(msg.sender, nextTokenId, _characterIndex);
     }
 
+    // Base64 encoding function for the metadata of the NFT
     function tokenURI(uint256 _tokenId) public view override returns (string memory) {
         CharacterAttributes memory charAttributes = nftHolderAttributes[_tokenId];
 
@@ -150,6 +154,7 @@ contract SnowDay is ERC721, Ownable {
         return string(abi.encodePacked("data:application/json;base64,", json));
     }
 
+    // Getter function to check is the wallets hots and NFT and return the attributes
     function checkIfUserNFT(address _holder) public view returns (CharacterAttributes memory) {
         uint256 userNftTokenId = nftHolders[_holder];
         if (userNftTokenId > 0) {
@@ -160,6 +165,7 @@ contract SnowDay is ERC721, Ownable {
         }
     }
 
+    // Getter function to check is the wallet holds an NFT
     function checkIfTargetHasNFT(address _holder) public view returns (bool) {
         if (balanceOf(_holder) > 0) {
             return true;
@@ -168,19 +174,24 @@ contract SnowDay is ERC721, Ownable {
         }
     }
 
+    // Grab all characters in the array (can by dynamic)
     function getAllDefaultCharacters() public view returns (CharacterAttributes[] memory) {
         return defaultCharacters;
     }
 
+    // Get the attributes of the specific token ID
     function getCharacterStats(uint256 _tokenId) external view returns (CharacterAttributes memory) {
         return nftHolderAttributes[_tokenId];
     }
 
+    // Get the HP of the specific token ID
     function getCharacterHp(uint256 _tokenId) public view returns (uint256) {
         return nftHolderAttributes[_tokenId].hp;
     }
 
     // Only Owner Functions
+
+    // Add a new character to the array
     function addCharacter(
         string memory _name,
         string memory _imageURI,
@@ -203,6 +214,7 @@ contract SnowDay is ERC721, Ownable {
         );
     }
 
+    // Updaet character name, image URI, HP, Attack, Defense, Evade
     function updateCharacterName(uint256 _characterIndex, string memory _newName) external onlyOwner {
         defaultCharacters[_characterIndex].name = _newName;
     }
@@ -227,6 +239,7 @@ contract SnowDay is ERC721, Ownable {
         defaultCharacters[_characterIndex].evade = _newEvade;
     }
 
+    // Pause the game
     function pauseGameToggle() external onlyOwner {
         isGamePaused = !isGamePaused;
     }

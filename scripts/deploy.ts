@@ -17,7 +17,7 @@ async function main() {
 
   await tokenEx.waitForDeployment();
 
-  console.log(`TokenEx contract address: ${tokenEx.target}`);
+  console.log(`Contract address: ${tokenEx.target}`);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

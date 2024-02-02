@@ -17,6 +17,7 @@ contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
 
     uint256 public constant MAX_ATTACKS = 3;
     uint256 public constant MAX_SHOTS_TAKEN = 3;
+    uint256 public constant BASE_EVADE_RATE = 50; // 50% chance to evade + Evade stat of character
     uint256 public priceOfNFTEscrow = 0.05 ether;
     address public airnode;
     bytes32 public endpointIdUint256;
@@ -26,7 +27,7 @@ contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
     uint256 public totalNFTsLeft;
     uint256 public winners;
 
-    uint256 public yieldCollected;
+    uint256 public yieldCollected; //public variale to view the yield collected
 
     mapping(bytes32 => bool) public expectingRequestWithIdToBeFulfilled;
     mapping(bytes32 => address[2]) whoToHit;
@@ -34,8 +35,6 @@ contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
     mapping(address => mapping(uint256 => uint256)) public dailyAttacksReceived;
     //Tracking how many attacks the NFT has done
     mapping(uint256 => mapping(uint256 => uint256)) public attacksSentDaily;
-
-
 
     event RequestUint256(bytes32 indexed requestId);
     event ReceivedUint256(bytes32 indexed requestId, uint256 response);
@@ -58,23 +57,24 @@ contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
         BLAST.configureClaimableGas();  //Set to claim all gas when contract uses gas
     }
 
+    // First set up the contract to be able to request random numbers from the airnode, sponsor wallet must be generated
     function setRequestParameters(address _airnode, bytes32 _endpointIdUint256, address _sponsorWallet) external onlyOwner {
         airnode = _airnode;
         endpointIdUint256 = _endpointIdUint256;
         sponsorWallet = _sponsorWallet;
     }
 
+    // Front facing function to start the game, calls the internal function of the snowday contract, resets any previous game data
     function startGame() external onlyOwner {
         if (gameInProgress == true) revert GameHasAlreadyStarted();
         // add a delay to start the game for winners to claim prizes before starting another
         // if(block.timestamp < endTime + 1 days) revert TooSoonAfterFinish();
-        //reset the winners
-        winners = 0;
-        //reset yield
-        yieldCollected = 0;
+        winners = 0; //reset the winners
+        yieldCollected = 0; //reset yield
         startTheGame();
     }
 
+    // Global end game function, anybody can call this function to end the game once the time is up
     function endGame() external {
         if (gameInProgress == false) revert GameHasNotStarted();
       //  if (block.timestamp < endTime) revert GameHasNotEnded();
@@ -84,6 +84,7 @@ contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
         claimYieldGenerated();
     }
 
+    // Function to enter the game during mint window, requires a stake of 0.05 ether but is returned if the player loses or wins the game.
     function enterTheArena(uint256 _characterIndex) external payable {
         if (gameInProgress == false) revert GameHasNotStarted();
         if (block.timestamp > mintWindow) revert MintWindowPassed();
@@ -95,6 +96,8 @@ contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
         ++totalNFTsLeft;
     }
 
+    // The primary attack function, makes the request to the airnode for a random number and sets the target
+    // They are checks to limit spamming of a specific target and to limit the number of attacks a player can make in a day
     function throwSnowball(address _victim) external {
         if (gameInProgress == false) revert GameHasNotStarted();
         if (isGamePaused) revert Paused();
@@ -119,6 +122,8 @@ contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
         makeRequestUint256(_victim, msg.sender);
     }
 
+    // Internal function of the returned random number to calculate the hit and damage
+    // If the player is hit and the damage is greater than their HP, the NFT is burned and the attacker receives the escrowed ether
     function hit(address _victim, address _attacker, uint256 _random) internal {
         if (isGamePaused) revert Paused();
         if (balanceOf(_victim) == 0) revert EnemyNeedsNFT();
@@ -129,7 +134,7 @@ contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
         CharacterAttributes storage player = nftHolderAttributes[nftTokenIdOfPlayer];
 
         // Adjust the hit chance based on evade
-        if (_random > (50 - player.evade)) {
+        if (_random > (BASE_EVADE_RATE - player.evade)) {
             emit MissedAttack(_attacker, _victim);
             //  console.log("Missed due to evasion");
             return;
@@ -155,6 +160,8 @@ contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
         }
     }
 
+    // Boiler plate function to make the request to the airnode for a random number
+    // while keeping track of the request ID, attakcer and the target
     function makeRequestUint256(address _victim, address _attacker) internal {
         bytes32 requestId = airnodeRrp.makeFullRequest(
             airnode, endpointIdUint256, address(this), sponsorWallet, address(this), this.fulfillUint256.selector, ""
@@ -165,6 +172,8 @@ contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
         emit RequestUint256(requestId);
     }
 
+    // Boiler plate function to receive the random number from the airnode
+    // Hit function is called with the random number
     function fulfillUint256(bytes32 requestId, bytes calldata data) external onlyAirnodeRrp {
         require(expectingRequestWithIdToBeFulfilled[requestId], "Request ID not known");
         expectingRequestWithIdToBeFulfilled[requestId] = false;
@@ -175,6 +184,7 @@ contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
         emit ReceivedUint256(requestId, qrngUint256);
     }
 
+    // Function to get the current day as a unique identifier
     function getCurrentDay() public view returns (uint256) {
         // Assuming the time is in UTC
         return (block.timestamp / 86400); // Divide the current timestamp by the number of seconds in a day
@@ -185,6 +195,7 @@ contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
         BLAST.claimAllGas(address(this), msg.sender);
     }
 
+    // Function for users to claim their prize, requires the game to be over and the user to have an NFT
     function claimYourPrize() external {
         if (gameInProgress == true) revert GameHasNotEnded();
         // if (block.timestamp < endTime) revert GameHasNotEnded();
@@ -199,6 +210,7 @@ contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
         require(success, "Payment not sent");
     }
 
+    // Function to calculate the payout for the winners once the game is ended
     function calculatePayout() internal view returns (uint256) {  
         uint256 earnedYield = yieldCollected;
         if (earnedYield == 0) return 0;
@@ -207,23 +219,29 @@ contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
         return winnerPayout;
     }
 
+    // Function to claim the yield generated by the contract
     function claimYieldGenerated() internal {
 		BLAST.claimAllYield(address(this), address(this));
     }
 
+    // Function to withdraw the funds from the contract
     function claimGasUsedByContract() external onlyOwner {
         BLAST.claimAllGas(address(this), msg.sender);
     }
 
+    // Getter function to view the yield generated during the game
     function getYieldOnContract() view external returns (uint256){
         uint256 yield = BLAST.readClaimableYield(address(this));
         return yield;
     }
 
+    // Function to request funds from the sponsor wallet and bring it into the contract
     function withdrawSponsorWalletFunds() external {
         airnodeRrp.requestWithdrawal(airnode, sponsorWallet);
     }
 
+    // Function to withdraw the funds from the contract
+    // Must have limitations set to prevent a rug pull
     function withdrawContractFunds() external  {
         // put a limiting end game requirement to stop a rug pull
         (bool success, ) = payable(msg.sender).call{value: address(this).balance}("");

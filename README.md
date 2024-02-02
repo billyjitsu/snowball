@@ -1,5 +1,4 @@
-# The Last Standing
-
+# The Last Few Standing
 
 ## Overview
 Many NFTs enter, only a few survive.  Stake a small amount of ETH to join the game, survive until the end of the game and share the prize of the staked yield on Blast network.
@@ -110,7 +109,9 @@ The functions:
 - `withdrawContractFunds`: The ability to pull funds (Primarily used for testing purposes).  If kept in, there should be requirements that will not allow contract owner to rug the game.
 - `receive`: A special function that will allow the contract to receive ETH by sending it to the address.  (Can be used to increase the yield)
 
-## Scripts
+
+
+## The Scripts
 The scripts folder, has multiple scripts to run through a test run of the game.  With the proper .env (PRIVATE_KEY, BLAST_SEPOLIA_RPC) in place, you can run through the scripts to play the game. 
 - `variable.js`: This will hold all the variables in the contract to be used by the scripts, such as the deployed contract address and sponsor wallet. 
 - `deploy.ts`; This has the airnode variable for the Blast network set as well as all the data for the 3 starting characters, each with their own attributes to give options of play style.  Once deployed, the address will print out to the console (to be put into variables.js file).
@@ -119,3 +120,80 @@ The scripts folder, has multiple scripts to run through a test run of the game. 
 - `t_mintnft.js`:This script will start the game. Adding two different private keys (deployer and another wallet), it will Mint the NFT for 2 different wallets staking the temp hold.
 - `y_attack.js`: Placing the public address of the attacker and the target, the script will send the `throwSnowball` function to the victim. Once the request has be sent, we will keep track of the requestID.  We will then listen and wait for a response from the contract to return our number and see what even occursed during the attack.  MissedAttack, SuccessfulAttack or NFTBurned.
 - `z_endgame.js`: This will end the game and allow the users to claim their prizes calling the `claimYourPrize` function and let the owner of the contract `claimGasUsedByContract` to harvest the gas rewards.  Ending the game and allowing a new game to start.
+
+Deploy the contract:
+```Javascript 
+npx hardhat run scripts/deploy.ts --network blastsepolia
+ ```
+ It will console out:
+ ```
+ Contract address: 0xdFDf1c5b8847C841fd27F9d7257822fc37A845Ab
+ ```
+ Verify the contract (make sure args.js match your deployment args)
+ ```
+ npx hardhat verify --network blastsepolia --constructor-args args.js 0xdFDf1c5b8847C841fd27F9d7257822fc37A845Ab
+ ```
+
+ Make sure to update `variables.js` with your contract address, then run:
+ ```
+ npx hardhat run scripts/fund.js
+ ```
+ It will return the status in the console to let you know it was successful.
+ ```
+ Sponsor wallet address: 0x0aC744292ef8015030721b6376D282493e95758F
+Funding sponsor wallet at 0x0aC744292ef8015030721b6376D282493e95758F with 0.001 ...
+Sponsor wallet funded
+ ```
+Make sure to update the `variables.js` file with your new sponsor wallet, then run:
+
+```
+npx hardhat run scripts/setparams.js
+```
+To run the next specific script, you will need two separate private keys.  This will have two different wallets mint an NFT to play eachother
+```
+npx hardhat run scripts/t_mintnft.js
+```
+It will console out if successful:
+```
+Game Started
+Minting NFTs...
+Owner Minted NFT
+Other Wallet Minted NFT
+```
+In this following script, put the public and the victims public addresses for the variables to see who attackts who.  It will send the request and then put up and event listener to see what happens when the numbers is returned to the contract
+
+
+```
+npx hardhat run scripts/y_attack.js 
+```
+It will return an example like this over time:
+```
+Starting Attack...
+requestID:  0xa836a9c9a33c4d68d269e2315bf5cae6433f7b249dc0ea1e98b4aa5f140f42a1
+Request completed successfully with request ID: 0xa836a9c9a33c4d68d269e2315bf5cae6433f7b249dc0ea1e98b4aa5f140f42a1
+Waiting for the request to be fulfilled...
+Successful Attack
+Attacker:  0xe2b865....083B8
+Victim:  0x9263b...98171
+Attack Power:  4n
+Victim Health:  201n
+```
+
+After a few rounds of attacks and when the game can end based on the requirements, assuming both NFTs survived, the game will end and both NFTs will claim their prize and escrow deposit back while the owner of the contract will claim the gas used by the contract.
+
+```
+npx hardhat run scripts/z_endgame.js
+```
+
+It will output:
+```
+End The Game...
+Game Ended
+Yield Earned:  0.0 ETH
+Claiming Rewards...
+Owner Claimed Prize
+Other Wallet Claimed Prize
+Gas Claimed
+```
+
+The game has completed and ready to play again

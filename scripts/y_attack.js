@@ -1,18 +1,7 @@
 const ethers = require("ethers");
-const airnodeAdmin = require("@api3/airnode-admin");
 require("dotenv").config();
 const ABI = require("../artifacts/contracts/NFTAttack.sol/NFTAttack.json");
-const {
-  airnodeAddress,
-  airnodeXpub,
-  endPointAddress,
-  yourDeployedContractAddress,
-  sponsorWallet,
-} = require("./variables");
-const {
-  latest,
-} = require("@nomicfoundation/hardhat-network-helpers/dist/src/helpers/time");
-const { resolve } = require("path");
+const {yourDeployedContractAddress} = require("./variables");
 
 async function main() {
 
@@ -35,8 +24,8 @@ async function main() {
   );
 
   console.log("Starting Attack...");
- 
-  const receipt = await contract.throwSnowball("0x9263bFf6ACCb60E83254E95220e7637465298171");
+                                                // Your target's address
+  const receipt = await contract.throwSnowball(victim);
 
   // console.log("Hash of the transaction: ", receipt.hash);
 
@@ -110,54 +99,6 @@ async function main() {
   });
 
 //  console.log("response: ", response);
-  
-
-  /*
-Contract Listeners
-*/
-
-  // //first listen for the event
-  // console.log("1st listen");
-  // contract.once("RequestUint256", (requestID, event) => {
-
-  //   console.log("requestID: ", requestID);
-  //   console.log("event: ", event);
-  //   }
-  // );
-
-  /* *************************** */
-
-  // Listen for all events from the contract
-  // console.log("Listening for the hashed event")
-  // contract.on('*', (event) => {
-  // // if (event.transactionHash === txResponse.hash) {
-  //     // This event is associated with the transaction hash we're interested in
-  //     // console.log("Event from our transaction:", event);
-
-  //     console.log("********************");
-  //     console.log("requestID: ", event.args[0]);
-
-  //     console.log("********************");
-  //     console.log("Event log breakdown(tx hash): ", event.log.transactionHash);
-
-  //   // }
-  // });
-
-  /* *************************** */
-  // //Working
-  // let events = await contract.queryFilter('RequestUint256', txReceipt.blockNumber, txReceipt.blockNumber);
-  //   console.log("Ethers version event:",events);
-
-  /* *************************** */
-  // const eventTopic = ethers.id('RequestUint256(bytes32)'); // Get the data hex string
-
-  // let rawlog = await provider.getLogs({
-  //   address: contract.address,
-  //   topics: [eventTopic],
-  //   fromBlock: txReceipt.blockNumber - 1,
-  //   toBlock: txReceipt.blockNumber
-  // });
-  // console.log("rawlog: ", rawlog);
 }
 
 main()

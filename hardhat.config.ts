@@ -17,15 +17,6 @@ solidity: {
         },
       },
     },
-    {
-      version: "0.8.9",
-      settings: {
-        optimizer: {
-          enabled: true,
-          runs: 200,
-        },
-      },
-    }
   ],
 },
 
@@ -33,12 +24,6 @@ networks: {
   
   hardhat: {
     chainId: 1337
-  },
-  goerlibase: {
-    url: `${process.env.GOERLI_RPC_URL}`,
-    accounts: [`${process.env.PRIVATE_KEY}`],
-    // gas: 200000000,
-    // gasPrice: 100000000000,
   },
   sepolia: {
     url: `${process.env.SEPOLIA_RPC_URL}`,

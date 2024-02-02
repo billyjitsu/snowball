@@ -1,7 +1,7 @@
 const ethers = require("ethers");
 require("dotenv").config();
 const ABI = require("../artifacts/contracts/NFTAttack.sol/NFTAttack.json");
-const { airnodeAddress, airnodeXpub, endPointAddress, yourDeployedContractAddress, sponsorWallet } = require("./variables");
+const {yourDeployedContractAddress} = require("./variables");
 
 
 async function main() {
@@ -26,18 +26,18 @@ async function main() {
   );
 
   //End the game
-  // const end = await contract.endGame();
-  //   let txReceiptEnd = await end.wait();
-  //   if (txReceiptEnd.status === 0) {
-  //     throw new Error("Transaction failed");
-  //   }
-  //   console.log(
-  //     "Game Ended"
-  //   );
+  const end = await contract.endGame();
+    let txReceiptEnd = await end.wait();
+    if (txReceiptEnd.status === 0) {
+      throw new Error("Transaction failed");
+    }
+    console.log(
+      "Game Ended"
+    );
   
   //Look at yield earned
-  // const yield = await contract.getYieldOnContract();
-  // console.log("Yield Earned: ", ethers.formatEther(yield), "ETH");
+  const yield = await contract.getYieldOnContract();
+  console.log("Yield Earned: ", ethers.formatEther(yield), "ETH");
 
     console.log(
       "Claiming Rewards..."

@@ -1,7 +1,7 @@
 const ethers = require("ethers");
 const airnodeAdmin = require("@api3/airnode-admin");
 require("dotenv").config();
-const { airnodeAddress, airnodeXpub, endPointAddress, yourDeployedContractAddress, sponsorWallet } = require("./variables");
+const { airnodeAddress, airnodeXpub, yourDeployedContractAddress} = require("./variables");
 
 
 async function main() {
