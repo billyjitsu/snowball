@@ -1,14 +1,50 @@
-import { ConnectButton } from "@rainbow-me/rainbowkit";
 import type { NextPage } from "next";
 import Head from "next/head";
 import styles from "../styles/Home.module.css";
 import NAV from "../components/Nav";
 import Hero from "../components/Intro";
 import Fight from "../components/Fight";
+import Loading from "../components/Loading"
+import { checkWhichNFT } from "../helpers";
+import { useEffect, useState } from "react";
+import { useAccount } from "wagmi";
+
+interface MintedData {
+  name: string;
+  imageURI: string;
+  hp: number;
+  attackDamage: number;
+  defense: number;
+  evade: number;
+  // Add other properties if needed
+}
 
 const Home: NextPage = () => {
+  const { address } = useAccount();
+  const [hasNft, setHasNft] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  const fetchNFT = async () => {
+    try {
+      const mintedData: MintedData | null = await checkWhichNFT(address) as MintedData;
+      return mintedData;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const mintedData = await fetchNFT();
+      setHasNft(!!mintedData);
+    };
+
+    fetchData();
+
+  }, [address]);
+
   return (
-    <div>
+    <div className="min-h-screen font-serif">
       <Head>
         <title>SnowDay</title>
         <meta
@@ -18,10 +54,15 @@ const Home: NextPage = () => {
         <link href="/favicon.ico" rel="icon" />
       </Head>
 
-      <main>
+      <main className="min-h-[100vh] bg-gradient-to-b from-black to-slate-300" style={{ position: 'relative', width: '100vw', height: '100vh' }}>
         <NAV />
-        <Hero />
-        <Fight />
+        {loading ? (
+          <div className="flex flex-row py-40 items-center">
+            <Loading action="...loading" />
+          </div>
+        ) : (
+          hasNft ? <Fight /> : <Hero />
+        )}
       </main>
 
       {/* <footer className={styles.footer}>

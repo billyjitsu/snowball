@@ -1,7 +1,7 @@
 import '../styles/globals.css';
 import '@rainbow-me/rainbowkit/styles.css';
 import { useMemo } from 'react';
-import { RainbowKitProvider, connectorsForWallets } from '@rainbow-me/rainbowkit';
+import { RainbowKitProvider, connectorsForWallets,darkTheme } from '@rainbow-me/rainbowkit';
 import { coinbaseWallet, metaMaskWallet, rainbowWallet, walletConnectWallet } from '@rainbow-me/rainbowkit/wallets';
 import type { AppProps } from 'next/app';
 import { configureChains, createConfig, WagmiConfig } from 'wagmi';
@@ -66,7 +66,13 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
 
   return (
     <WagmiConfig config={wagmiConfig}>
-      <RainbowKitProvider chains={chains}>
+      <RainbowKitProvider chains={chains} theme={darkTheme({
+      accentColor: '#7b3fe4',
+      accentColorForeground: 'white',
+      borderRadius: 'small',
+      fontStack: 'system',
+      overlayBlur: 'small',
+    })}>
         <Component {...pageProps} />
       </RainbowKitProvider>
     </WagmiConfig>

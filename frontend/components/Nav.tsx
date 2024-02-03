@@ -1,4 +1,4 @@
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { ConnectButton, darkTheme } from "@rainbow-me/rainbowkit";
 import { faBars } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState, useEffect } from "react";
@@ -35,20 +35,35 @@ const Header = () => {
   //   ></nav>
 
   return (
-    <nav className="flex bg-transparent  py-3 px-1 justify-between w-full items-center  fixed top-0 z-50  "> {/* absolute or fixed*/}
+    <nav className="flex bg-transparent px-1 justify-between w-full items-center"> {/* absolute or fixed*/}
       <div className="container px-1 mx-auto flex flex-wrap items-center justify-between ">
         <div className="w-full relative flex justify-between lg:w-auto lg:static lg:block lg:justify-start">
           {/* Logo - Title */}
 
-          <Link legacyBehavior href="/">
-            <a className="text-xl font-bold text-white inline-block whitespace-nowrap uppercase drop-shadow-[0_2.2px_1.2px_rgba(0,0,0,0.8)]">
-              Snowday
-            </a>
-          </Link>
-
+          <div className="relative inline-block">
+            <iframe
+              src="https://lottie.host/embed/973d8985-c200-4029-a5fb-a17c4ceeb3bf/yBF3l74Ugu.json"
+              style={{
+                position: 'absolute',
+                width: '100%',
+                height: '100%',
+                top: 0,
+                left: 0,
+                border: 'none',
+                pointerEvents: 'none', // This ensures that the iframe doesn't intercept mouse events
+              }}
+            ></iframe>
+            <Link legacyBehavior href="/">
+              <a
+                className="text-3xl font-bold text-white relative z-0 whitespace-nowrap uppercase drop-shadow-[0_2.2px_1.2px_rgba(0,0,0,0.8)]"
+              >
+                Snowday
+              </a>
+            </Link>
+          </div>
           {/*  Hamburger Menu  */}
           <button
-            className="text-white cursor-pointer text-xl leading-none px-3 py-1 border border-solid border-transparent rounded bg-transparent block lg:hidden outline-none focus:outline-none"
+            className="text-white cursor-pointer text-xl leading-none px-3 py-1 border border-solid border-transparent rounded block lg:hidden outline-none focus:outline-none"
             type="button"
             onClick={() => setNavbarOpen(!navbarOpen)}
           >
@@ -61,8 +76,8 @@ const Header = () => {
         </div>
 
         <div
-          className={ 
-            "lg:flex flex-grow items-center bg-white lg:bg-transparent lg:shadow-none " +
+          className={
+            "lg:flex flex-grow items-center  lg:bg-transparent lg:shadow-none " +
             (navbarOpen ? " block rounded shadow-lg" : " hidden")
           }
           id="nav-drop"
@@ -99,13 +114,12 @@ const Header = () => {
                 onClick={() => setNavbarOpen(!navbarOpen)}
               >
                 <i className=" leading-lg  opacity-75"></i>
-                <span>Contract</span>
+                <span className="text-white">Contract</span>
               </a>
             </li>
 
-            <li className="py-2 flex items-center mb-3 px-3 lg:mb-0 lg:px-0 lg:ml-2">
+            <li className="py-2 flex items-center px-3 lg:mb-0 lg:px-0 lg:ml-2">
               <ConnectButton showBalance={false} />
-              {/*    <ConnectButton label="Sign in" showBalance={false} chainStatus="none" /> */}
             </li>
           </ul>
         </div>

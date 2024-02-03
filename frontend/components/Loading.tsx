@@ -1,14 +1,15 @@
 /* eslint-disable react/no-unescaped-entities */
 import React from "react";
 
-const Loading = () => {
+interface LoadingProps {
+  action?: string
+}
+
+const Loading = ({ action }: LoadingProps) => {
   return (
-    <div className="relative flex flex-col text-white items-center justify-center mb-10 md:mb-0 h-screen w-full">
-      <div className="absolute flex flex-col items-center justify-center">
-        <h2 className="text-white text-center justify-center text-3xl font-bold animate-pulse mb-10 md:mb-0 w-full drop-shadow-[0_2.2px_1.2px_rgba(0,0,0,0.8)]">
-          Loading...
-        </h2>
-      </div>
+    <div className="mx-auto p-0">
+      <iframe className="text-center mx-auto" src="https://lottie.host/embed/c43b6a08-d090-4389-8911-590f82decbeb/ziMZcQuzz9.json"></iframe>
+      <p className="text-center font-bold text-white">{action ?? "...loading"}</p>
     </div>
   );
 };
