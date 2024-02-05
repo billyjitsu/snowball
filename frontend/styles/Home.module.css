@@ -1,5 +1,14 @@
+p {
+  font-family: monospace !important;
+}
+
 .container {
   padding: 0 2rem;
+}
+
+#container {
+  padding-top: 10rem;
+  color: 'red' !important;
 }
 
 .main {
