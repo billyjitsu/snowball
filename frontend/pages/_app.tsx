@@ -1,7 +1,7 @@
 import '../styles/globals.css';
 import '@rainbow-me/rainbowkit/styles.css';
 import { useMemo } from 'react';
-import { RainbowKitProvider, connectorsForWallets,darkTheme } from '@rainbow-me/rainbowkit';
+import {Chain, RainbowKitProvider, connectorsForWallets,darkTheme } from '@rainbow-me/rainbowkit';
 import { coinbaseWallet, metaMaskWallet, rainbowWallet, walletConnectWallet } from '@rainbow-me/rainbowkit/wallets';
 import type { AppProps } from 'next/app';
 import { configureChains, createConfig, WagmiConfig } from 'wagmi';
@@ -17,6 +17,28 @@ import { particleWallet } from '@particle-network/rainbowkit-ext';
 const MyApp = ({ Component, pageProps }: AppProps) => {
   const isTestnetsEnabled = process.env.NEXT_PUBLIC_ENABLE_TESTNETS === 'true';
   const selectedGoerliChain = isTestnetsEnabled ? EthereumGoerli : BaseGoerli;
+  
+  const blast: Chain = {
+    id: 168587773,
+    name: 'Blast',
+    network: 'blast',
+   // iconUrl: 'https://example.com/icon.svg',
+    iconBackground: '#fff',
+    nativeCurrency: {
+      decimals: 18,
+      name: 'Ethereum',
+      symbol: 'ETH',
+    },
+    rpcUrls: {
+      public: { http: ['https://rpc.ankr.com/blast_testnet_sepolia'] },
+      default: { http: ['https://rpc.ankr.com/blast_testnet_sepolia'] },
+    },
+    blockExplorers: {
+      default: { name: 'BlastScan', url: 'https://testnet.blastscan.io' },
+      etherscan: { name: 'BlastScan', url: 'https://testnet.blastscan.io' },
+    },
+    testnet: true,
+  };
 
   const particle = useMemo(() => new ParticleNetwork({
     projectId: process.env.NEXT_PUBLIC_PROJECT_ID!,
@@ -27,7 +49,7 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
   }), [selectedGoerliChain]);
 
   const { chains, publicClient, webSocketPublicClient } = configureChains(
-    [sepolia, ...(isTestnetsEnabled ? [goerli] : [])],
+    [sepolia, blast, ...(isTestnetsEnabled ? [goerli] : [])],
     [publicProvider()]
   );
 

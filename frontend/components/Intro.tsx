@@ -12,22 +12,20 @@ import {
   useContractWrite,
   useContractRead,
 } from "wagmi";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, startTransition } from "react";
 import LoadingScreen from "./Loading";
 import { parseEther } from "viem";
-import { encode, decode } from "@api3/airnode-abi";
 import Snowfight from "../contract/contract.json";
 import Loading from "./Loading";
 import Button from "./Button";
-
 
 const Intro = () => {
   const { address, isConnected } = useAccount();
   const [loading, setLoading] = useState<boolean>(false);
   const [minted, setMinted] = useState<boolean>(false);
+  const ethStakeAmount = 0.05;
 
-
-  const contractAddress = "0x893b67416Df9D9d0cD64f1e1B484Cc7eAAfd3195";
+  const contractAddress = "0xdA976c89DbC30046Bb093dfa1E457AB1A51305ED";
 
   const contractConfig = {
     address: contractAddress,
@@ -52,15 +50,33 @@ const Intro = () => {
     },
   ];
 
+  const StartGame = async () => {
+    try {
+      const { hash } = await writeContract({
+        address: contractAddress,
+        abi: Snowfight.abi,
+        functionName: "startGame",
+      });
+      setLoading(true);
+      await waitForTransaction({
+        hash,
+      });
+
+      setLoading(false);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const mintTheNFT = async (nftNum: number) => {
     try {
       console.log("NFT Number:", nftNum);
       const { hash } = await writeContract({
         address: contractAddress,
         abi: Snowfight.abi,
-        functionName: "claimNFT",
+        functionName: "enterTheArena",
         args: [nftNum],
-        //  value: parseEther(ethAmount.toString()),
+        value: parseEther(ethStakeAmount.toString()),
       });
       setLoading(true);
       await waitForTransaction({
@@ -87,7 +103,7 @@ const Intro = () => {
     } catch (error) {
       console.log(error);
     }
-  }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -105,8 +121,7 @@ const Intro = () => {
     fetchData();
   }, [isConnected]);
 
-  console.log(images)
-
+  console.log(images);
 
   return (
     <div className="min-h-screen w-full ">
@@ -141,7 +156,9 @@ const Intro = () => {
                               {image.description}
                             </p>
                             <Button
-                              onClick={() => { mintTheNFT(index); }}
+                              onClick={() => {
+                                mintTheNFT(index);
+                              }}
                               text={image.buttonText}
                             />
                           </div>
@@ -188,6 +205,14 @@ const Intro = () => {
             </div>
           </div>
         )}
+        <div className="flex flex-col items-center justify-center md:mt-0 sm:-ml-0 ">
+          <Button
+            onClick={() => {
+              StartGame();
+            }}
+            text="Start Game"
+          />
+        </div>
 
         {/* Loading Screen */}
         {loading && isConnected && <Loading />}

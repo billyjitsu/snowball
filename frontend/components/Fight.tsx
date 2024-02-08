@@ -8,15 +8,22 @@ import {
 } from "@wagmi/core";
 import {
   useAccount,
+  useContractEvent,
   usePrepareContractWrite,
   useContractWrite,
   useContractRead,
 } from "wagmi";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Snowfight from "../contract/contract.json";
 import NFTDataDisplay from "./NftCard";
 import Loading from "./Loading";
 import Button from "./Button";
+
+// Define the structure of your attack result state
+interface AttackResult {
+  type: 'MissedAttack' | 'SuccessfulAttack' | 'NFTBurned' | null;
+  data: any | null;
+}
 
 const Fight = () => {
   const { address, isConnected } = useAccount();
@@ -26,9 +33,12 @@ const Fight = () => {
   const [nftData, setNftData] = useState<any>(null);
   const [defenderData, setDefenderData] = useState<any>(null);
   const [hover, setHover] = useState<boolean>(false);
-  const [defenderAddress, setDefenderAddress] = useState<string>("0x9263bFf6ACCb60E83254E95220e7637465298171");
+  const [defenderAddress, setDefenderAddress] = useState<string>(
+    "0x9263bFf6ACCb60E83254E95220e7637465298171"
+  );
+  const [attackResult, setAttackResult] = useState({ type: null, data: null });
 
-  const contractAddress = "0x893b67416Df9D9d0cD64f1e1B484Cc7eAAfd3195";
+  const contractAddress = "0xdA976c89DbC30046Bb093dfa1E457AB1A51305ED";
 
   const contractConfig = {
     address: contractAddress,
@@ -37,9 +47,9 @@ const Fight = () => {
 
   useEffect(() => {
     if (!defenderAddress) {
-      setDefenderData(null)
+      setDefenderData(null);
     }
-  }, [defenderAddress])
+  }, [defenderAddress]);
 
   const handleChange = (event: any) => {
     setDefenderAddress(event.target.value);
@@ -51,6 +61,7 @@ const Fight = () => {
     return input.length === 42 || input.endsWith(".eth");
   };
 
+  // WE NEED TO CHECK IS THEY DON'T HAVE AN NFT
   const getnftdata = async (newAddress: string) => {
     console.log("Defender Address:", newAddress);
     const returnedData = await checkOpponentNFT(newAddress);
@@ -58,24 +69,30 @@ const Fight = () => {
     setDefenderData(returnedData);
   };
 
-  const mintTheNFT = async (nftNum: number) => {
+  const attackTarget = async (targetAddress: string) => {
     try {
       setLoading(true);
       attacking = true;
-      setTimeout(() => {
-        console.log("ATTACKING!")
-      }, 3000)
+      console.log("Starting Attack...");
+      // setTimeout(() => {
+      //   console.log("ATTACKING!")
+      // }, 3000)
       const { hash } = await writeContract({
         address: contractAddress,
         abi: Snowfight.abi,
-        functionName: "claimNFT",
-        args: [nftNum],
+        functionName: "throwSnowball",
+        args: [targetAddress],
         //  value: parseEther(ethAmount.toString()),
       });
       await waitForTransaction({
         hash,
       });
 
+      console.log("hash:", hash);
+      console.log("Waiting for the request to be fulfilled...");
+
+      // Extract transaction hash from the receipt
+      // const transactionHash = hash;
       setLoading(false);
       // attacking = false;
       // setMinted(true);
@@ -83,6 +100,65 @@ const Fight = () => {
       console.log(error);
     }
   };
+
+
+  // Separate handlers for each event type to update state accordingly
+  // const handleMissedAttack = useCallback((event: { args: any[]; }) => {
+  //   if (event.args[0] !== address) return;
+  //   console.log("Missed Attack:", event);
+  //   setAttackResult({ type: 'MissedAttack', data: event });
+  //   setLoading(false);
+  // }, [address]);
+
+  // const handleSuccessfulAttack = useCallback((event: { args: any[]; }) => {
+  //   if (event.args[0] !== address) return;
+  //   console.log("Successful Attack:", event);
+  //   setAttackResult({ type: 'SuccessfulAttack', data: event });
+  //   setLoading(false);
+  // }, [address]);
+
+  // const handleNFTBurned = useCallback((event: { args: any[]; }) => {
+  //   if (event.args[2] !== address) return; // Assuming the address is the third argument for this event
+  //   console.log("NFT Burned:", event);
+  //   setAttackResult({ type: 'NFTBurned', data: event });
+  //   setLoading(false);
+  // }, [address]);
+
+  // Setting up event listeners
+  // useContractEvent({
+  //   ...contractConfig,
+  //   eventName: 'MissedAttack',
+  //   listener: handleMissedAttack,
+  // });
+
+  // useContractEvent({
+  //   ...contractConfig,
+  //   eventName: 'SuccessfulAttack',
+  //   listener: handleSuccessfulAttack,
+  // });
+
+  // useContractEvent({
+  //   ...contractConfig,
+  //   eventName: 'NFTBurned',
+  //   listener: handleNFTBurned,
+  // });
+  
+  ///// example
+  // useContractEvent({
+  //   address: '0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e',
+  //   abi: ensRegistryABI,
+  //   eventName: 'NewOwner',
+  //   listener: (event) => {
+  //     console.log(event); // Log the event data
+  //     // Perform an action when the event happens
+  //     // Assuming the event has an argument for the new owner's address
+  //     const ownerAddress = event.args[0];
+  //     setNewOwner(ownerAddress); // Update state with the new owner's address
+
+  //     // You can also trigger any other side effect here, such as notifying the user
+  //   },
+  // });
+
 
   const checkWhichNFT = async () => {
     try {
@@ -113,6 +189,8 @@ const Fight = () => {
       console.log(error);
     }
   };
+
+  //lister for the event
 
   useEffect(() => {
     if (isValidAddress(defenderAddress)) {
@@ -173,12 +251,11 @@ const Fight = () => {
                       placeholder="Enter Ethereum Address or ENS Name"
                       className="w-1/2 p-2 border border-gray-300 rounded mx-auto"
                     />
-                    {defenderAddress &&
-                      !isValidAddress(defenderAddress) && (
-                        <p className="text-red-500">
-                          Invalid address or ENS name
-                        </p>
-                      )}
+                    {defenderAddress && !isValidAddress(defenderAddress) && (
+                      <p className="text-red-500">
+                        Invalid address or ENS name
+                      </p>
+                    )}
                   </div>
                 </div>
                 {/* <p className="text-white text-center text-xl">
@@ -186,7 +263,9 @@ const Fight = () => {
                         </p> */}
 
                 {/* Image  */}
-                <div className={`flex flex-col md:flex-row items-center mx-auto w-full py-6 px-4 md:px-8`}>
+                <div
+                  className={`flex flex-col md:flex-row items-center mx-auto w-full py-6 px-4 md:px-8`}
+                >
                   {/* Attacker */}
                   {nftData && (
                     <div className="flex flex-col items-center">
@@ -198,22 +277,21 @@ const Fight = () => {
                   {/* VS */}
                   {defenderData && !loading && (
                     <div className="flex flex-col relative rounded-md mx-auto">
-                      <h1 className="text-6xl font-bold relative z-0 whitespace-nowrap text-white hidden md:block lg:block">VS</h1>
+                      <h1 className="text-6xl font-bold relative z-0 whitespace-nowrap text-white hidden md:block lg:block">
+                        VS
+                      </h1>
                       <div className="relative">
                         {defenderAddress && isValidAddress(defenderAddress) && (
                           <Button
-                            onClick={() => mintTheNFT(1)}
+                            onClick={() => attackTarget(defenderAddress)}
                             text="Attack"
                           />
                         )}
                       </div>
-
                     </div>
                   )}
 
-                  {defenderData && loading && (
-                    <Loading action="ATTACKING" />
-                  )}
+                  {defenderData && loading && <Loading action="ATTACKING" />}
 
                   {/* Defender */}
                   {defenderData && (
