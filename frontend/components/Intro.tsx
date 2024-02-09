@@ -25,7 +25,7 @@ const Intro = () => {
   const [minted, setMinted] = useState<boolean>(false);
   const ethStakeAmount = 0.05;
 
-  const contractAddress = "0xdA976c89DbC30046Bb093dfa1E457AB1A51305ED";
+  const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS;
 
   const contractConfig = {
     address: contractAddress,
@@ -53,7 +53,7 @@ const Intro = () => {
   const StartGame = async () => {
     try {
       const { hash } = await writeContract({
-        address: contractAddress,
+        address: contractAddress as `0x${string}`,
         abi: Snowfight.abi,
         functionName: "startGame",
       });
@@ -72,7 +72,7 @@ const Intro = () => {
     try {
       console.log("NFT Number:", nftNum);
       const { hash } = await writeContract({
-        address: contractAddress,
+        address: contractAddress as `0x${string}`,
         abi: Snowfight.abi,
         functionName: "enterTheArena",
         args: [nftNum],
@@ -93,7 +93,7 @@ const Intro = () => {
   const checkIfUserHasMinted = async () => {
     try {
       const hasMinted = await readContract({
-        address: contractAddress,
+        address: contractAddress as `0x${string}`,
         abi: Snowfight.abi,
         functionName: "checkIfTargetHasNFT",
         args: [address],

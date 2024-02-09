@@ -4,12 +4,12 @@ import {
 import Snowfight from "../contract/contract.json";
 import { useAccount } from "wagmi";
 
-const contractAddress = "0xdA976c89DbC30046Bb093dfa1E457AB1A51305ED";
+const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS;
 
-export const checkWhichNFT = async (address: any) => {
+export const checkWhichNFT = async (address: string) => {
   try {
     const hasMinted = await readContract({
-      address: contractAddress,
+      address: contractAddress as `0x${string}` ,
       abi: Snowfight.abi,
       functionName: "checkIfTargetHasNFT",
       args: [address],

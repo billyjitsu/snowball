@@ -14,7 +14,7 @@ import {
   useContractRead,
   UseContractEventConfig,
 } from "wagmi";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import Snowfight from "../contract/contract.json";
 import NFTDataDisplay from "./NftCard";
 import Loading from "./Loading";
@@ -51,8 +51,8 @@ const Fight = () => {
   );
   const [attackResult, setAttackResult] = useState({ type: null, data: null });
 
-  //  process.env.NEXT_PUBLIC_CONTRACT_ADDRESS;
-  const contractAddress = "0xdA976c89DbC30046Bb093dfa1E457AB1A51305ED";
+ 
+  const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS;
 
   const contractConfig = {
     address: contractAddress,
@@ -92,7 +92,7 @@ const Fight = () => {
       //   console.log("ATTACKING!")
       // }, 3000)
       const { hash } = await writeContract({
-        address: contractAddress,
+        address: contractAddress as `0x${string}`,
         abi: Snowfight.abi,
         functionName: "throwSnowball",
         args: [targetAddress],
@@ -203,7 +203,7 @@ const Fight = () => {
   const checkWhichNFT = async () => {
     try {
       const hasMinted = await readContract({
-        address: contractAddress,
+        address: contractAddress as `0x${string}`,
         abi: Snowfight.abi,
         functionName: "checkIfUserNFT",
         args: [address],
@@ -218,7 +218,7 @@ const Fight = () => {
   const checkOpponentNFT = async (newAddress: string) => {
     try {
       const hasMinted = await readContract({
-        address: contractAddress,
+        address: contractAddress as `0x${string}`,
         abi: Snowfight.abi,
         functionName: "checkIfUserNFT",
         args: [newAddress],
