@@ -34,9 +34,9 @@ contract SnowDay is ERC721, Ownable {
     uint256 public constant MINT_WINDOW = 2 days;
     uint256 public constant TOTAL_TIME = 1 weeks;
     uint256 public nextTokenId = 1;
-    uint256 startTime;
-    uint256 mintWindow;
-    uint256 endTime;
+    uint256 public startTime;
+    uint256 public mintWindow;
+    uint256 public endTime;
     
     bool public isGamePaused = false;
     bool public gameInProgress = false;

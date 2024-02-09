@@ -12,6 +12,7 @@ import {
   usePrepareContractWrite,
   useContractWrite,
   useContractRead,
+  UseContractEventConfig,
 } from "wagmi";
 import React, { useState, useEffect, useCallback } from "react";
 import Snowfight from "../contract/contract.json";
@@ -19,10 +20,22 @@ import NFTDataDisplay from "./NftCard";
 import Loading from "./Loading";
 import Button from "./Button";
 
-// Define the structure of your attack result state
-interface AttackResult {
-  type: 'MissedAttack' | 'SuccessfulAttack' | 'NFTBurned' | null;
-  data: any | null;
+interface MissedAttack {
+  attacker: string;
+  victim: string;
+}
+
+interface SuccessfulAttack {
+  attacker: string;
+  victim: string;
+  damageAmount: bigint;
+  victimHp: bigint;
+}
+
+interface NFTBurned {
+  victim: string;
+  tokenId: bigint;
+  attacker: string;
 }
 
 const Fight = () => {
@@ -38,6 +51,7 @@ const Fight = () => {
   );
   const [attackResult, setAttackResult] = useState({ type: null, data: null });
 
+  //  process.env.NEXT_PUBLIC_CONTRACT_ADDRESS;
   const contractAddress = "0xdA976c89DbC30046Bb093dfa1E457AB1A51305ED";
 
   const contractConfig = {
@@ -125,23 +139,49 @@ const Fight = () => {
   // }, [address]);
 
   // Setting up event listeners
-  // useContractEvent({
-  //   ...contractConfig,
-  //   eventName: 'MissedAttack',
-  //   listener: handleMissedAttack,
-  // });
+  useContractEvent({
+    ...contractConfig,
+    eventName: 'MissedAttack',
+    listener: (log) => {
+      console.log("Event Name:", log[0].eventName);
+      if(log[0].eventName === "MissedAttack") {
+        const { attacker, victim } = log[0].args as unknown as MissedAttack;
+        console.log(`Attacker: ${attacker}, Victim: ${victim}`);
+      }
+    
+      if(log[0].eventName === "SuccessfulAttack") {
+        const { attacker, victim, damageAmount, victimHp } = log[0].args as unknown as SuccessfulAttack;
+        console.log(`Attacker: ${attacker}, Victim: ${victim}, Damage: ${damageAmount}, Victim HP: ${victimHp}`);
+      }
 
+      if(log[0].eventName === "NFTBurned") {
+        const { victim, tokenId, attacker } = log[0].args as unknown as NFTBurned;
+        console.log(`Victim: ${victim}, Token ID: ${tokenId}, Attacker: ${attacker}`);
+      }
+
+      console.log("First Arg",log[0].args); // Log the event data
+
+    },
+  } as UseContractEventConfig);
+
+  // // Setting up event listeners
   // useContractEvent({
   //   ...contractConfig,
   //   eventName: 'SuccessfulAttack',
-  //   listener: handleSuccessfulAttack,
-  // });
+  //   listener: (event) => {
+  //     console.log("Hit",event); // Log the event data
+  //   },
+  // } as UseContractEventConfig);
 
   // useContractEvent({
   //   ...contractConfig,
   //   eventName: 'NFTBurned',
-  //   listener: handleNFTBurned,
-  // });
+  //   listener: (event) => {
+  //     console.log("Burned",event); // Log the event data
+  //   },
+  // } as UseContractEventConfig);
+
+  
   
   ///// example
   // useContractEvent({
