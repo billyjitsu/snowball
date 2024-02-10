@@ -4,6 +4,6 @@ const endPointAddress = '0x94555f83f1addda23fdaa7c74f27ce2b764ed5cc430c66f5ff1bc
                                     //Fill in with YOUR deployed contract address
 const yourDeployedContractAddress = '0x74b17BbA1F94141552F9697F16f29fc1Edb1AEf7';
                       //Fill in with YOUR generated sponsor wallet address
-const sponsorWallet = '0x86c0Da0D8A3220D90bb71CCebc980A3b9236C851';
+const sponsorWallet = '0x89Ad4bEbFCA97BE16523E820E28C20500BB35a1F';
 
 module.exports = { airnodeAddress, airnodeXpub, endPointAddress, yourDeployedContractAddress, sponsorWallet };

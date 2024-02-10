@@ -49,7 +49,8 @@ const Fight = () => {
   const [defenderAddress, setDefenderAddress] = useState<string>(
     "0x9263bFf6ACCb60E83254E95220e7637465298171"
   );
-  const [attackResult, setAttackResult] = useState({ type: null, data: null });
+  const [attackResult, setAttackResult] = useState<number>(0);
+  // 1 = Missed Attack 2 = Successful Attack 3 = NFT Burned
 
  
   const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS;
@@ -85,6 +86,7 @@ const Fight = () => {
 
   const attackTarget = async (targetAddress: string) => {
     try {
+      setAttackResult(0);
       setLoading(true);
       attacking = true;
       console.log("Starting Attack...");
@@ -117,12 +119,12 @@ const Fight = () => {
 
 
   // Separate handlers for each event type to update state accordingly
-  // const handleMissedAttack = useCallback((event: { args: any[]; }) => {
+  // const handleMissedAttack =(event: { args: any[]; }) => {
   //   if (event.args[0] !== address) return;
   //   console.log("Missed Attack:", event);
   //   setAttackResult({ type: 'MissedAttack', data: event });
   //   setLoading(false);
-  // }, [address]);
+  // };
 
   // const handleSuccessfulAttack = useCallback((event: { args: any[]; }) => {
   //   if (event.args[0] !== address) return;
@@ -147,22 +149,32 @@ const Fight = () => {
       if(log[0].eventName === "MissedAttack") {
         const { attacker, victim } = log[0].args as unknown as MissedAttack;
         console.log(`Attacker: ${attacker}, Victim: ${victim}`);
+        setAttackResult(1);
       }
     
       if(log[0].eventName === "SuccessfulAttack") {
         const { attacker, victim, damageAmount, victimHp } = log[0].args as unknown as SuccessfulAttack;
         console.log(`Attacker: ${attacker}, Victim: ${victim}, Damage: ${damageAmount}, Victim HP: ${victimHp}`);
+        setAttackResult(2);
       }
 
       if(log[0].eventName === "NFTBurned") {
         const { victim, tokenId, attacker } = log[0].args as unknown as NFTBurned;
         console.log(`Victim: ${victim}, Token ID: ${tokenId}, Attacker: ${attacker}`);
+        setAttackResult(3);
       }
 
       console.log("First Arg",log[0].args); // Log the event data
+      // console.log ("Attack Result:", attackResult);
 
     },
   } as UseContractEventConfig);
+
+  useEffect(() => {
+    console.log("Attack Result updated:", attackResult);
+    // attack result 1 = missed attack 2 = successful attack 3 = nft burned
+    // if (attackResult === 1) {  something } ...
+  }, [attackResult]);
 
   // // Setting up event listeners
   // useContractEvent({
