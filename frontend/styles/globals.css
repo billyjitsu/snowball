@@ -1,3 +1,115 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+main {
+  min-height: 100vh;
+  background-image: linear-gradient(to bottom, #000000, #6e7e91);
+  /* Assuming slate-300 color is #6e7e91 */
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+}
+
+@keyframes shake-slow {
+  0% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-4px) rotate(-2deg);
+  }
+
+  50% {
+    transform: translateX(4px) rotate(2deg);
+  }
+
+  75% {
+    transform: translateX(-2px) rotate(-1deg);
+  }
+
+  100% {
+    transform: translateX(0);
+  }
+}
+
+/* Adjust the animation duration for the slow effect */
+.animate-shake-slow {
+  animation: shake-slow 1.5s ease-in-out infinite;
+  /* Adjust the duration as needed */
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 0;
+  background-color: rgba(85, 201, 240, 0.5);
+  /* Ice blue color with alpha channel */
+  z-index: 1;
+  /* Ensure the overlay is above other content */
+  animation: slideDown .3s ease forwards;
+}
+
+@keyframes slideDown {
+  0% {
+    height: 0;
+  }
+
+  100% {
+    height: 100%;
+  }
+}
+
+.overlay.frozen {
+  background-color: rgba(173, 216, 230, 0.5);
+  /* Ice blue color with alpha channel */
+}
+
+.snow-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.snowflake {
+  position: absolute;
+  top: -10px;
+  left: 0;
+  font-size: 20px;
+  color: #ffffff;
+  animation: snow-animation 5s linear infinite;
+}
+
+@keyframes snow-animation {
+  0% {
+    transform: translateY(-10px) rotate(0deg);
+  }
+
+  100% {
+    transform: translateY(100vh) rotate(360deg);
+  }
+}
+
+.slingshot {
+  position: relative;
+  animation: slingshot-animation 4s ease-in-out infinite;
+}
+
+@keyframes slingshot-animation {
+
+  0%,
+  100% {
+    left: 0;
+  }
+
+  50% {
+    left: -50px;
+    /* Adjust this value to control the distance it moves to the left */
+  }
+
+  60% {
+    left: 6vw;
+    /* Moves quickly to the right */
+  }
+}

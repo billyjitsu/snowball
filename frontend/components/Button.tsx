@@ -2,36 +2,24 @@ import dynamic from "next/dynamic";
 import { useState } from "react";
 
 interface ButtonProps {
-  text: string;
-  onClick: () => void;
+  text?: string;
+  onClick?: () => void;
+  disabled?: boolean;
 }
 
-const Button = ({ text, onClick }: ButtonProps) => {
+const Button = ({ text, onClick, disabled }: ButtonProps) => {
   const [hover, setHover] = useState<boolean>(false);
   return (
-    <>
+    <div>
       <button
         type="button"
         onClick={onClick}
-        onMouseEnter={() => setHover(!hover)}
-        onMouseLeave={() => setHover(!hover)}
-        className="relative bg-gray-500 hover:bg-gray-700 border border-white text-white font-bold py-2 px-4 rounded my-4 overflow-hidden"
+        disabled={disabled}
+        className={`relative bg-gray-500 border border-white text-white font-bold py-2 px-4 rounded my-4 overflow-hidden ${disabled ? '' : 'hover:bg-gray-700'}`}
       >
-        {hover && <iframe
-          src="https://lottie.host/embed/973d8985-c200-4029-a5fb-a17c4ceeb3bf/yBF3l74Ugu.json"
-          style={{
-            position: 'absolute',
-            width: '100%',
-            height: '100%',
-            top: 0,
-            left: 0,
-            border: 'none',
-            pointerEvents: 'none', // Ensures that the iframe doesn't intercept mouse events
-          }}
-        ></iframe>}
         <p className="text-center z-10 relative">{text}</p>
       </button>
-    </>
+    </div>
   )
 }
 

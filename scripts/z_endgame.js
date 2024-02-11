@@ -1,7 +1,7 @@
 const ethers = require("ethers");
 require("dotenv").config();
 const ABI = require("../artifacts/contracts/NFTAttack.sol/NFTAttack.json");
-const {yourDeployedContractAddress} = require("./variables");
+const { process.env.NEXT_PUBLIC_CONTRACT_ADDRESS } = require("./variables");
 
 
 async function main() {
@@ -18,8 +18,8 @@ async function main() {
   const contractABI = ABI.abi;
 
   // Create a contract instance
-  const contract = new ethers.Contract(yourDeployedContractAddress, contractABI, wallet);
-  const contract2 = new ethers.Contract(yourDeployedContractAddress, contractABI, wallet2);
+  const contract = new ethers.Contract(process.env.NEXT_PUBLIC_CONTRACT_ADDRESS, contractABI, wallet);
+  const contract2 = new ethers.Contract(process.env.NEXT_PUBLIC_CONTRACT_ADDRESS, contractABI, wallet2);
 
   console.log(
     "End The Game..."
@@ -27,21 +27,21 @@ async function main() {
 
   //End the game
   const end = await contract.endGame();
-    let txReceiptEnd = await end.wait();
-    if (txReceiptEnd.status === 0) {
-      throw new Error("Transaction failed");
-    }
-    console.log(
-      "Game Ended"
-    );
-  
+  let txReceiptEnd = await end.wait();
+  if (txReceiptEnd.status === 0) {
+    throw new Error("Transaction failed");
+  }
+  console.log(
+    "Game Ended"
+  );
+
   //Look at yield earned
   const yield = await contract.getYieldOnContract();
   console.log("Yield Earned: ", ethers.formatEther(yield), "ETH");
 
-    console.log(
-      "Claiming Rewards..."
-    );
+  console.log(
+    "Claiming Rewards..."
+  );
 
   //Claim rewards
   const receipt = await contract.claimYourPrize();
@@ -73,7 +73,7 @@ async function main() {
   console.log(
     "Gas Claimed"
   );
-  
+
 }
 
 main()

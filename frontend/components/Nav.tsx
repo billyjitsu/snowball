@@ -3,8 +3,10 @@ import { faBars } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
-const Header = () => {
+const Nav = () => {
+  const router = useRouter();
   const [navbarOpen, setNavbarOpen] = useState(false);
   const [animateHeader, setAnimateHeader] = useState(false);
 
@@ -83,28 +85,24 @@ const Header = () => {
           id="nav-drop"
         >
           <ul className="flex flex-col lg:flex-row list-none lg:ml-auto">
-            {/* <li className="flex items-center">
+            <li className="flex items-center">
               <a
-                className="py-2 text-sm uppercase px-6 font-bold leading-snug text-gray-800 lg:text-base lg:text-white hover:opacity-75 lg:px-3"
-                href="#claim"
-                onClick={() => setNavbarOpen(!navbarOpen)}
+                className="py-2 text-sm uppercase cursor-pointer px-6 font-bold leading-snug text-white lg:text-base lg:text-white hover:opacity-75 lg:px-3"
+                onClick={() => router.push("/")}
               >
-                <i className=" leading-lg opacity-75"></i>
+                <i className="leading-lg opacity-75"></i>
+                <span>Home</span>
+              </a>
+            </li>
+            <li className="flex items-center">
+              <a
+                className="py-2 text-sm uppercase cursor-pointer px-6 font-bold leading-snug text-white lg:text-base lg:text-white hover:opacity-75 lg:px-3"
+                onClick={() => router.push("/claim")}
+              >
+                <i className="leading-lg opacity-75"></i>
                 <span>Claim</span>
               </a>
-            </li> */}
-            {/* <li className="flex items-center">
-              <Link legacyBehavior href= "/admin">
-              <a
-  
-                className="py-2 text-sm uppercase px-6 font-bold leading-snug text-gray-800 lg:text-base lg:text-blue-500 hover:opacity-75 lg:px-3"
-                onClick={() => setNavbarOpen(!navbarOpen)}
-              >
-                <i className=" leading-lg  opacity-75"></i>
-                <span>Admin</span>
-              </a>
-              </Link>
-            </li> */}
+            </li>
             <li className="flex items-center">
               <a
                 className="py-2 text-sm uppercase px-6 font-bold leading-snug text-gray-800 lg:text-base lg:text-white hover:opacity-75 lg:px-3 drop-shadow-[0_2.2px_1.2px_rgba(0,0,0,0.8)]"
@@ -128,4 +126,4 @@ const Header = () => {
   );
 };
 
-export default Header;
+export default Nav;

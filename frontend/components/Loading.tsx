@@ -1,15 +1,39 @@
 /* eslint-disable react/no-unescaped-entities */
-import React from "react";
-
+import React, { useEffect, useRef } from "react";
+import * as LottiePlayer from "@lottiefiles/lottie-player";
+import attackMain1 from "../components/lotties/attack1.json"
+import attackMain from "../components/lotties/attack.json"
+import swords from "../components/lotties/swords.json"
 interface LoadingProps {
-  action?: string
+  action?: string;
+  size?: 'sm' | 'md' | 'lg';
 }
 
-const Loading = ({ action }: LoadingProps) => {
+const Loading = ({ action, size }: LoadingProps) => {
+  const ref = useRef(null);
+  React.useEffect(() => {
+    import("@lottiefiles/lottie-player");
+  });
+
+  const maxWidths = {
+    'sm': "100",
+    'md': "200",
+    'lg': "300"
+  }
+
   return (
-    <div className="mx-auto p-0">
-      <iframe className="text-center mx-auto" src="https://lottie.host/embed/c43b6a08-d090-4389-8911-590f82decbeb/ziMZcQuzz9.json"></iframe>
-      <p className="text-center font-bold text-white">{action ?? "...loading"}</p>
+    <div className={`p-0 text-mx-auto text-center`}>
+      <lottie-player
+        id="firstLottie"
+        ref={ref}
+        autoplay
+        loop
+        mode="Bounce"
+        className={`${maxWidths['sm']}`}
+        src={JSON.stringify(action?.toLowerCase() === "attacking" ? attackMain1 : swords)}
+        style={{ width: `${maxWidths[size || "sm"]}px`, height: `${maxWidths[size || "sm"]}px`, margin: "0 auto" }}
+      ></lottie-player>
+      <p className={`text-${size ?? 'md'} text-center font-bold text-white`}>{action ?? "...loading"}</p>
     </div>
   );
 };
