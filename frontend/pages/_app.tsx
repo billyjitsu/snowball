@@ -51,7 +51,7 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
   }), [selectedGoerliChain]);
 
   const { chains, publicClient, webSocketPublicClient } = configureChains(
-    [sepolia, blast, ...(isTestnetsEnabled ? [goerli] : [])],
+    [blast, ...(isTestnetsEnabled ? [goerli] : [])],
     [publicProvider()]
   );
 
