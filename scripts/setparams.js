@@ -1,7 +1,7 @@
 const ethers = require("ethers");
 require("dotenv").config();
 const ABI = require("../artifacts/contracts/NFTAttack.sol/NFTAttack.json");
-const { airnodeAddress, endPointAddress, yourDeployedContractAddress, sponsorWallet } = require("./variables");
+const { airnodeAddress, endPointAddress, process.env.NEXT_PUBLIC_CONTRACT_ADDRESS, sponsorWallet } = require("./variables");
 
 
 async function main() {
@@ -15,7 +15,7 @@ async function main() {
   const contractABI = ABI.abi;
 
   // Create a contract instance
-  const contract = new ethers.Contract(yourDeployedContractAddress, contractABI, wallet);
+  const contract = new ethers.Contract(process.env.NEXT_PUBLIC_CONTRACT_ADDRESS, contractABI, wallet);
 
   console.log(
     "Setting Params, waiting for it to be confirmed..."
@@ -33,7 +33,7 @@ async function main() {
   }
   console.log(
     "Request Parameters set"
-  ); 
+  );
 }
 
 main()

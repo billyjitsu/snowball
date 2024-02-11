@@ -1,11 +1,12 @@
 import '../styles/globals.css';
 import '@rainbow-me/rainbowkit/styles.css';
 import { useMemo } from 'react';
-import {Chain, RainbowKitProvider, connectorsForWallets,darkTheme } from '@rainbow-me/rainbowkit';
+import { Chain, RainbowKitProvider, connectorsForWallets, darkTheme } from '@rainbow-me/rainbowkit';
 import { coinbaseWallet, metaMaskWallet, rainbowWallet, walletConnectWallet } from '@rainbow-me/rainbowkit/wallets';
 import type { AppProps } from 'next/app';
 import { configureChains, createConfig, WagmiConfig } from 'wagmi';
-import {sepolia,
+import {
+  sepolia,
   goerli,
   baseGoerli
 } from 'wagmi/chains';
@@ -13,16 +14,17 @@ import { EthereumGoerli, BaseGoerli, EthereumSepolia } from '@particle-network/c
 import { publicProvider } from 'wagmi/providers/public';
 import { ParticleNetwork } from '@particle-network/auth';
 import { particleWallet } from '@particle-network/rainbowkit-ext';
+import Nav from '../components/Nav';
 
 const MyApp = ({ Component, pageProps }: AppProps) => {
   const isTestnetsEnabled = process.env.NEXT_PUBLIC_ENABLE_TESTNETS === 'true';
   const selectedGoerliChain = isTestnetsEnabled ? EthereumGoerli : BaseGoerli;
-  
+
   const blast: Chain = {
     id: 168587773,
     name: 'Blast',
     network: 'blast',
-   // iconUrl: 'https://example.com/icon.svg',
+    // iconUrl: 'https://example.com/icon.svg',
     iconBackground: '#fff',
     nativeCurrency: {
       decimals: 18,
@@ -87,17 +89,20 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
   });
 
   return (
-    <WagmiConfig config={wagmiConfig}>
-      <RainbowKitProvider chains={chains} theme={darkTheme({
-      accentColor: '#7b3fe4',
-      accentColorForeground: 'white',
-      borderRadius: 'small',
-      fontStack: 'system',
-      overlayBlur: 'small',
-    })}>
-        <Component {...pageProps} />
-      </RainbowKitProvider>
-    </WagmiConfig>
+    <main>
+      <WagmiConfig config={wagmiConfig}>
+        <RainbowKitProvider chains={chains} theme={darkTheme({
+          accentColor: '#7b3fe4',
+          accentColorForeground: 'white',
+          borderRadius: 'small',
+          fontStack: 'system',
+          overlayBlur: 'small',
+        })}>
+          <Nav />
+          <Component {...pageProps} />
+        </RainbowKitProvider>
+      </WagmiConfig>
+    </main>
   );
 }
 

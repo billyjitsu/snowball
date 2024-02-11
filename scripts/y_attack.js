@@ -1,7 +1,7 @@
 const ethers = require("ethers");
 require("dotenv").config();
 const ABI = require("../artifacts/contracts/NFTAttack.sol/NFTAttack.json");
-const {yourDeployedContractAddress} = require("./variables");
+const { process.env.NEXT_PUBLIC_CONTRACT_ADDRESS } = require("./variables");
 
 async function main() {
 
@@ -18,13 +18,13 @@ async function main() {
 
   // Create a contract instance
   const contract = new ethers.Contract(
-    yourDeployedContractAddress,
+    process.env.NEXT_PUBLIC_CONTRACT_ADDRESS,
     contractABI,
     wallet
   );
 
   console.log("Starting Attack...");
-                                                // Your target's address
+  // Your target's address
   const receipt = await contract.throwSnowball(victim);
 
   // console.log("Hash of the transaction: ", receipt.hash);
@@ -58,7 +58,7 @@ async function main() {
       contract.removeAllListeners(contract.filters.SuccessfulAttack(attacker, victim, null, null));
       contract.removeAllListeners(contract.filters.NFTBurned(victim, null, attacker));
     }
-  
+
     // Setting up listeners for each event
     contract.once(contract.filters.MissedAttack(), (event) => {
       if (event.args[0] !== attacker) {
@@ -70,7 +70,7 @@ async function main() {
       resolve(event);
       cleanup();
     });
-  
+
     contract.once(contract.filters.SuccessfulAttack(), (event) => {
       if (event.args[0] !== attacker) {
         return;
@@ -84,7 +84,7 @@ async function main() {
       resolve(event);
       cleanup();
     });
-  
+
     contract.once(contract.filters.NFTBurned(), (event) => {
       if (event.args[2] !== attacker) {
         return;
@@ -98,7 +98,7 @@ async function main() {
     });
   });
 
-//  console.log("response: ", response);
+  //  console.log("response: ", response);
 }
 
 main()

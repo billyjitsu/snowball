@@ -1,7 +1,7 @@
 const ethers = require("ethers");
 require("dotenv").config();
 const ABI = require("../artifacts/contracts/NFTAttack.sol/NFTAttack.json");
-const {yourDeployedContractAddress } = require("./variables");
+const { process.env.NEXT_PUBLIC_CONTRACT_ADDRESS } = require("./variables");
 
 
 async function main() {
@@ -18,8 +18,8 @@ async function main() {
   const contractABI = ABI.abi;
 
   // Create a contract instance
-  const contract = new ethers.Contract(yourDeployedContractAddress, contractABI, wallet);
-  const contract2 = new ethers.Contract(yourDeployedContractAddress, contractABI, wallet2);
+  const contract = new ethers.Contract(process.env.NEXT_PUBLIC_CONTRACT_ADDRESS, contractABI, wallet);
+  const contract2 = new ethers.Contract(process.env.NEXT_PUBLIC_CONTRACT_ADDRESS, contractABI, wallet2);
 
   console.log(
     "Starting The Game..."
@@ -27,20 +27,20 @@ async function main() {
 
   //START the game
   const starter = await contract.startGame();
-    let txReceiptStarter = await starter.wait();
-    if (txReceiptStarter.status === 0) {
-      throw new Error("Transaction failed");
-    }
-    console.log(
-      "Game Started"
-    );
+  let txReceiptStarter = await starter.wait();
+  if (txReceiptStarter.status === 0) {
+    throw new Error("Transaction failed");
+  }
+  console.log(
+    "Game Started"
+  );
 
-    console.log(
-      "Minting NFTs..."
-    );
+  console.log(
+    "Minting NFTs..."
+  );
 
   //make sure to pay!!!!
-  const receipt = await contract.enterTheArena(0 ,{value: ethers.parseEther("0.05")});
+  const receipt = await contract.enterTheArena(0, { value: ethers.parseEther("0.05") });
 
   let txReceipt = await receipt.wait();
   if (txReceipt.status === 0) {
@@ -50,7 +50,7 @@ async function main() {
     "Owner Minted NFT"
   );
 
-  const receipt2 = await contract2.enterTheArena(1, {value: ethers.parseEther("0.05")});
+  const receipt2 = await contract2.enterTheArena(1, { value: ethers.parseEther("0.05") });
 
   let txReceipt2 = await receipt2.wait();
   if (txReceipt2.status === 0) {
@@ -59,7 +59,7 @@ async function main() {
   console.log(
     "Other Wallet Minted NFT"
   );
-  
+
 }
 
 main()

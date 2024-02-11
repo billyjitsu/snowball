@@ -285,8 +285,6 @@ const Fight = () => {
     fetchData();
   }, [isConnected, attackResult]);
 
-  console.log("-----", defenderData)
-
   return (
     <>
       <div className="flex flex-col md:flex-row w-full justify-center">
