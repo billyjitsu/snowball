@@ -189,6 +189,18 @@ contract SnowDay is ERC721, Ownable {
         return nftHolderAttributes[_tokenId].hp;
     }
 
+    function getIsGameOver() public view returns (bool) {
+        return gameInProgress;
+    }
+
+    function getTimeLeftForCurrentGame() public view returns (uint256) {
+        if (block.timestamp < endTime) {
+            return endTime - block.timestamp;
+        } else {
+            return 0;
+        }
+    }
+
     // Only Owner Functions
 
     // Add a new character to the array

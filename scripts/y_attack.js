@@ -1,7 +1,7 @@
 const ethers = require("ethers");
 require("dotenv").config();
 const ABI = require("../artifacts/contracts/NFTAttack.sol/NFTAttack.json");
-const { process.env.NEXT_PUBLIC_CONTRACT_ADDRESS } = require("./variables");
+const { yourDeployedContractAddress } = require("./variables");
 
 async function main() {
 
@@ -18,7 +18,7 @@ async function main() {
 
   // Create a contract instance
   const contract = new ethers.Contract(
-    process.env.NEXT_PUBLIC_CONTRACT_ADDRESS,
+    yourDeployedContractAddress,
     contractABI,
     wallet
   );
