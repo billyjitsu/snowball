@@ -102,7 +102,7 @@ const Nav = () => {
           onClick={() => {
             StartGame();
           }}
-          className={`relative bg-gray-500 p-[5px] border border-white text-white font-bold rounded my-4 overflow-hidden`}
+          className={`relative bg-gray-500 hover:bg-gray-700 p-[5px] border border-white text-white font-bold rounded my-4 overflow-hidden`}
 
         >Start Game</button>}
       </div>
