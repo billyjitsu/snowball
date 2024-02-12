@@ -22,6 +22,7 @@ import Button from "../Button";
 import { MintedData } from "../../types";
 import AttackSummary from "../AttackSummary";
 import { isValidAddress } from "../../helpers";
+import { useRouter } from "next/navigation";
 
 interface MissedAttack {
   attacker: string;
@@ -43,10 +44,13 @@ interface NFTBurned {
 
 const Fight = () => {
   const { address, isConnected } = useAccount();
+  const router = useRouter();
+
   const [loading, setLoading] = useState<boolean>(false);
   const [attacking, setAttacking] = useState<boolean>(false);
   const [attackComplete, setAttackComplete] = useState<boolean>(false)
   const [damageAmount, setDamageAmount] = useState<bigint>()
+  const [isGameOver, setIsGameOver] = useState<boolean>(false);
 
   const [minted, setMinted] = useState<boolean>(false);
   const [nftData, setNftData] = useState<any>(null);
@@ -86,6 +90,20 @@ const Fight = () => {
     setLoading(true);
     console.log("Defender Address:", newAddress);
     const returnedData = await checkOpponentNFT(newAddress);
+    const getIsGameOver = async () => {
+      try {
+        const isGameOver = await readContract({
+          address: process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string}`,
+          abi: Snowfight.abi,
+          functionName: "getIsGameOver",
+        });
+
+        console.log(isGameOver)
+        setIsGameOver(isGameOver);
+      } catch (error) {
+        console.log(error);
+      }
+    }
     console.log("Returned Data:", returnedData);
     const isInvalidNFT: boolean = !returnedData?.name && !returnedData?.imageURI
     isInvalidNFT ? setDefenderData(null) : setDefenderData(returnedData);
@@ -133,30 +151,6 @@ const Fight = () => {
     }
   }, [attackResult])
 
-
-  // Separate handlers for each event type to update state accordingly
-  // const handleMissedAttack =(event: { args: any[]; }) => {
-  //   if (event.args[0] !== address) return;
-  //   console.log("Missed Attack:", event);
-  //   setAttackResult({ type: 'MissedAttack', data: event });
-  //   setLoading(false);
-  // };
-
-  // const handleSuccessfulAttack = useCallback((event: { args: any[]; }) => {
-  //   if (event.args[0] !== address) return;
-  //   console.log("Successful Attack:", event);
-  //   setAttackResult({ type: 'SuccessfulAttack', data: event });
-  //   setLoading(false);
-  // }, [address]);
-
-  // const handleNFTBurned = useCallback((event: { args: any[]; }) => {
-  //   if (event.args[2] !== address) return; // Assuming the address is the third argument for this event
-  //   console.log("NFT Burned:", event);
-  //   setAttackResult({ type: 'NFTBurned', data: event });
-  //   setLoading(false);
-  // }, [address]);
-
-  // Setting up event listeners
   useContractEvent({
     ...contractConfig,
     eventName: 'MissedAttack',
@@ -185,8 +179,6 @@ const Fight = () => {
         console.log(`Victim: ${victim}, Token ID: ${tokenId}, Attacker: ${attacker}`);
         setAttackResult(3);
       }
-
-
       console.log("First Arg", log[0].args); // Log the event data
       // console.log ("Attack Result:", attackResult);
 
@@ -194,45 +186,16 @@ const Fight = () => {
   } as UseContractEventConfig);
 
   useEffect(() => {
+    if (isGameOver) {
+      router.push("/claim")
+    }
+  }, [isGameOver])
+  useEffect(() => {
     if (attackResult === 3) {
       // run animations
       // push to claim page
     }
   }, [attackResult])
-
-  // // Setting up event listeners
-  // useContractEvent({
-  //   ...contractConfig,
-  //   eventName: 'SuccessfulAttack',
-  //   listener: (event) => {
-  //     console.log("Hit",event); // Log the event data
-  //   },
-  // } as UseContractEventConfig);
-
-  // useContractEvent({
-  //   ...contractConfig,
-  //   eventName: 'NFTBurned',
-  //   listener: (event) => {
-  //     console.log("Burned",event); // Log the event data
-  //   },
-  // } as UseContractEventConfig);
-
-  ///// example
-  // useContractEvent({
-  //   address: '0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e',
-  //   abi: ensRegistryABI,
-  //   eventName: 'NewOwner',
-  //   listener: (event) => {
-  //     console.log(event); // Log the event data
-  //     // Perform an action when the event happens
-  //     // Assuming the event has an argument for the new owner's address
-  //     const ownerAddress = event.args[0];
-  //     setNewOwner(ownerAddress); // Update state with the new owner's address
-
-  //     // You can also trigger any other side effect here, such as notifying the user
-  //   },
-  // });
-
 
   const checkWhichNFT = async () => {
     try {
@@ -285,6 +248,11 @@ const Fight = () => {
     fetchData();
   }, [isConnected, attackResult]);
 
+  function endGame(): void {
+
+    throw new Error("Function not implemented.");
+  }
+
   return (
     <>
       <div className="flex flex-col md:flex-row w-full justify-center">
@@ -322,8 +290,8 @@ const Fight = () => {
 
                   {!attacking && defenderData && (
                     <div className="flex flex-col relative rounded-md mx-auto">
-                      <h1 className="text-6xl font-bold relative z-0 whitespace-nowrap text-white hidden md:block lg:block">VS</h1>
-                      <div className="relative">
+                      <div className="relative text-center">
+                        <h1 className="text-6xl text-white font-bold">VS</h1>
                         {defenderAddress && isValidAddress(defenderAddress) && defenderData && (
                           <Button
                             onClick={() => attackTarget(defenderAddress)}
@@ -331,6 +299,9 @@ const Fight = () => {
                             disabled={!defenderData}
                           />
                         )}
+                        {!isGameOver && <div className="relative">
+                          <Button text="End Game" className="hover:bg-red-500" onClick={endGame} />
+                        </div>}
                       </div>
                     </div>
                   )}
@@ -374,7 +345,7 @@ const Fight = () => {
 
           </div>
         </div>
-      </div >
+      </div>
     </>
   );
 };

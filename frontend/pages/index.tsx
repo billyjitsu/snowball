@@ -9,14 +9,18 @@ import { checkWhichNFT, fetchNFT } from "../helpers";
 import { useEffect, useState } from "react";
 import { useAccount } from "wagmi";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 
 const Home: NextPage = () => {
   const router = useRouter()
   const { address } = useAccount();
   const [hasNft, setHasNft] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
+    console.log(hasNft)
+    if (!address) return;
+    console.log("?")
     setLoading(true)
     const fetchData: () => Promise<void> = async () => {
       const mintedData = await fetchNFT(address || undefined);
@@ -24,16 +28,19 @@ const Home: NextPage = () => {
     };
 
     fetchData();
+    if (!loading && address) {
+      router.push(`/arena`)
+    }
     setLoading(false)
   }, [address]);
 
   useEffect(() => {
-    if (!loading && hasNft) {
-      router.push(`/arena?hasNft=${hasNft}`)
-    } else (
+    if (!loading && address) {
       router.push(`/arena`)
-    )
-  }, [hasNft])
+    }
+  }, [])
+
+  console.log("LOADING", loading)
 
   return (
     <div className="min-h-screen font-serif">
@@ -47,6 +54,10 @@ const Home: NextPage = () => {
       </Head>
 
       <div>
+        {!address && (
+          <p className="text-3xl text-center text-white">Connect Wallet to start</p>
+        )
+        }
         {loading && (
           <div className="">
             <Loading action="...loading" size="lg" />
@@ -63,4 +74,5 @@ const Home: NextPage = () => {
   );
 };
 
-export default Home;
+export default dynamic(() => Promise.resolve(Home), { ssr: false });
+

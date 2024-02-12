@@ -12,24 +12,19 @@ const AttackSummary: React.FC<AttackSummaryProps> = ({ attackResult, damageAmoun
 
   useEffect(() => {
     switch (attackResult) {
-      case 1: setResult("YOU MISSED! \n Try Again")
+      case 1: setResult("YOU MISSED! Try Again")
         break
-      case 2: setResult(`ATTACK SUCCESS! \n Opponent took ${damageAmount} damage!`)
+      case 2: setResult(`ATTACK SUCCESS! Opponent took ${damageAmount} damage!`)
         break
-      case 3: setResult(`ATTACK SUCCESS! \n You took your opponent out of the game!`)
+      case 3: setResult(`ATTACK SUCCESS! You took your opponent out of the game!`)
         break
     }
   }, [attackResult])
   return (
-    <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center">
+    <div className="fixed top-[-3rem] left-0 w-full h-full flex items-center justify-center">
       <div className={`max-w-xs bg-${attackResult === 1 ? "black" : "green-500"} text-sm text-white rounded-md shadow-lg dark:bg-${attackResult === 1 ? "black" : "green-900"}`} role="alert">
         <div className="flex items-center p-4">
-          <span>{result.split('\n').map((line, index) => (
-            <React.Fragment key={index}>
-              {line}
-              <br />
-            </React.Fragment>
-          ))}</span>
+          <span>{result}</span>
           <div className="ml-4">
             <button
               type="button"

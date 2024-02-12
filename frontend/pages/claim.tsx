@@ -10,10 +10,18 @@ import Snowfight from "../contract/contract.json";
 
 import Button from "../components/Button";
 import dynamic from "next/dynamic";
-
+import { useRouter } from "next/navigation";
 function Claim() {
   const { address, isConnected } = useAccount();
-  const [nftData, setNftData] = useState<MintedData>()
+  const router = useRouter();
+  const [nftData, setNftData] = useState<MintedData>();
+
+  useEffect(() => {
+    if (!isConnected) {
+      router.push("/");
+    }
+  }, [isConnected])
+
   useEffect(() => {
     const fetchData = async () => {
       if (isConnected && address) {
