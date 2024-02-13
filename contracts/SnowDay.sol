@@ -155,15 +155,33 @@ contract SnowDay is ERC721, Ownable {
     }
 
     // Getter function to check is the wallets hots and NFT and return the attributes
+    // function checkIfUserNFT(address _holder) public view returns (CharacterAttributes memory) {
+    //     uint256 userNftTokenId = nftHolders[_holder];
+    //     if (userNftTokenId > 0) {
+    //         return nftHolderAttributes[userNftTokenId]; // fix this
+    //     } else {
+    //         CharacterAttributes memory emptyStruct;
+    //         return emptyStruct;
+    //     }
+    // }
+
     function checkIfUserNFT(address _holder) public view returns (CharacterAttributes memory) {
         uint256 userNftTokenId = nftHolders[_holder];
         if (userNftTokenId > 0) {
-            return nftHolderAttributes[userNftTokenId];
+            // Assuming there's a function `ownerOf` that returns the owner's address for a tokenId
+            address ownerAddress = ownerOf(userNftTokenId);
+            if (ownerAddress != address(0)) { // Check if the owner address is not the zero address
+                return nftHolderAttributes[userNftTokenId];
+            } else {
+                CharacterAttributes memory emptyStruct;
+                return emptyStruct; // Return an empty struct if the owner address is the zero address
+            }
         } else {
             CharacterAttributes memory emptyStruct;
-            return emptyStruct;
+            return emptyStruct; // Return an empty struct if userNftTokenId is 0 or less
         }
     }
+
 
     // Getter function to check is the wallet holds an NFT
     function checkIfTargetHasNFT(address _holder) public view returns (bool) {
@@ -189,7 +207,7 @@ contract SnowDay is ERC721, Ownable {
         return nftHolderAttributes[_tokenId].hp;
     }
 
-    function getIsGameOver() public view returns (bool) {
+    function getIsGameInProgress() public view returns (bool) {
         return gameInProgress;
     }
 

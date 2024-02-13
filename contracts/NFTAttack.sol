@@ -190,11 +190,6 @@ contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
         return (block.timestamp / 86400); // Divide the current timestamp by the number of seconds in a day
     }
 
-    // Blast chain specific function to claim the gas this contract has used
-    function claimMyContractsGas() external onlyOwner {
-        BLAST.claimAllGas(address(this), msg.sender);
-    }
-
     // Function for users to claim their prize, requires the game to be over and the user to have an NFT
     function claimYourPrize() external {
         if (gameInProgress == true) revert GameHasNotEnded();
