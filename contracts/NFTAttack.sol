@@ -65,7 +65,7 @@ contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
     }
 
     // Front facing function to start the game, calls the internal function of the snowday contract, resets any previous game data
-    function startGame() external onlyOwner {
+    function startGame() external {
         if (gameInProgress == true) revert GameHasAlreadyStarted();
         // add a delay to start the game for winners to claim prizes before starting another
         // if(block.timestamp < endTime + 1 days) revert TooSoonAfterFinish();
@@ -196,6 +196,7 @@ contract NFTAttack is RrpRequesterV0, Ownable, SnowDay {
         // if (block.timestamp < endTime) revert GameHasNotEnded();
         if (balanceOf(msg.sender) == 0) revert YouNeedAnNFT();
         _burn(nftHolders[msg.sender]);
+        nftHolders[msg.sender] = 0;
 
         // calculate the yield
         uint256 payout = calculatePayout();
