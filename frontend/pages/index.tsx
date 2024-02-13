@@ -5,42 +5,61 @@ import NAV from "../components/Nav";
 import Hero from "../components/battle/Intro";
 import Fight from "../components/battle/Fight";
 import Loading from "../components/Loading"
-import { checkWhichNFT, fetchNFT } from "../helpers";
+import { checkWhichNFT, fetchNFT, getIsGameInProgress } from "../helpers";
 import { useEffect, useState } from "react";
 import { useAccount } from "wagmi";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
+import {
+  writeContract,
+  waitForTransaction
+} from "@wagmi/core";
+import Snowfight from "../contract/contract.json";
 
 const Home: NextPage = () => {
   const router = useRouter()
   const { address } = useAccount();
   const [hasNft, setHasNft] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
+  const [gameInProgress, setGameInProgress] = useState<boolean>(false)
+  const [gameStarted, setGameStarted] = useState<boolean>(false); // @TODO change this based on game status
 
+  const StartGame = async () => {
+    try {
+      setLoading(true)
+      const { hash } = await writeContract({
+        address: process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string}`,
+        abi: Snowfight.abi,
+        functionName: "startGame",
+      });
+      await waitForTransaction({
+        hash,
+      });
+
+      setGameStarted(true)
+      setLoading(false)
+      router.push("/arena")
+    } catch (error) {
+      console.log(error);
+    }
+  };
   useEffect(() => {
-    console.log(hasNft)
     if (!address) return;
-    console.log("?")
     setLoading(true)
     const fetchData: () => Promise<void> = async () => {
       const mintedData = await fetchNFT(address || undefined);
       setHasNft(!!mintedData);
+
+      const isGameInProgress = await getIsGameInProgress()
+      setGameInProgress(isGameInProgress)
+      if (!loading && address && isGameInProgress) {
+        router.push(`/arena`)
+      }
+      setLoading(false)
     };
 
     fetchData();
-    if (!loading && address) {
-      router.push(`/arena`)
-    }
-    setLoading(false)
   }, [address]);
-
-  useEffect(() => {
-    if (!loading && address) {
-      router.push(`/arena`)
-    }
-  }, [])
-
-  console.log("LOADING", loading)
 
   return (
     <div className="min-h-screen font-serif">
@@ -58,6 +77,15 @@ const Home: NextPage = () => {
           <p className="text-3xl text-center text-white">Connect Wallet to start</p>
         )
         }
+        {!gameInProgress && <div className="flex justify-center">
+          {!gameStarted && <button
+            onClick={() => {
+              StartGame();
+            }}
+            className={`relative bg-gray-500 hover:bg-gray-700 p-[5px] border border-white text-white text-3xl font-bold rounded my-4 overflow-hidden`}
+
+          >{!loading ? "Start The Battle" : "...entering the battle"}</button>}
+        </div>}
         {loading && (
           <div className="">
             <Loading action="...loading" size="lg" />

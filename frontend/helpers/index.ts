@@ -7,6 +7,20 @@ import { MintedData } from "../types";
 
 const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS;
 
+export const getIsGameInProgress = async () => {
+  try {
+    const isGameOver = await readContract({
+      address: process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string}`,
+      abi: Snowfight.abi,
+      functionName: "getIsGameInProgress",
+    });
+
+    return isGameOver;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 export const checkWhichNFT = async (address: string) => {
   try {
     const hasMinted = await readContract({

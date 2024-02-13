@@ -13,6 +13,7 @@ import Snowfight from "../contract/contract.json";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import Button from "../components/Button";
+import { getIsGameInProgress } from "../helpers";
 
 function Arena() {
   const router = useRouter();
@@ -20,7 +21,6 @@ function Arena() {
   const [nftData, setNftData] = useState<MintedData>();
   const [minted, setMinted] = useState<boolean>(false);
 
-  const [isGameOver, setIsGameOver] = useState<boolean>(false);
   const [timeLeft, setTimeLeft] = useState<any>();
 
   useEffect(() => {
@@ -37,30 +37,15 @@ function Arena() {
         console.log(error);
       }
     }
-    getIsGameOver();
     getTimeLeftForCurrentGame();
     fetchData();
-  }, [isConnected]);
+  }, [isConnected, minted]);
 
   useEffect(() => {
     if (!address || !isConnected) {
       router.push("/")
     }
   }, [address, isConnected])
-
-  const getIsGameOver = async () => {
-    try {
-      const isGameOver = await readContract({
-        address: process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string}`,
-        abi: Snowfight.abi,
-        functionName: "getIsGameOver",
-      });
-
-      setIsGameOver(isGameOver);
-    } catch (error) {
-      console.log(error);
-    }
-  }
 
   const getTimeLeftForCurrentGame = async () => {
     try {
@@ -81,12 +66,22 @@ function Arena() {
     }
   }
 
+  useEffect(() => {
+    const checkIfGameInProgress = async () => {
+      const gameInProgress = await getIsGameInProgress();
+      if (!gameInProgress) {
+        router.push('/')
+      }
+    }
+    checkIfGameInProgress()
+  }, [])
+
   return (
     <div>
       {isConnecting ?
         <Loading />
         :
-        (minted || nftData?.name ? <Fight /> : <FighterSelect setMinted={setMinted} />)
+        (minted || nftData?.hp > 0 ? <Fight /> : <FighterSelect setMinted={setMinted} />)
       }
       {minted && (
         <div

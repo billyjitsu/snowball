@@ -21,7 +21,7 @@ import Loading from "../Loading";
 import Button from "../Button";
 import { MintedData } from "../../types";
 import AttackSummary from "../AttackSummary";
-import { isValidAddress } from "../../helpers";
+import { getIsGameInProgress, isValidAddress } from "../../helpers";
 import { useRouter } from "next/navigation";
 
 interface MissedAttack {
@@ -50,7 +50,7 @@ const Fight = () => {
   const [attacking, setAttacking] = useState<boolean>(false);
   const [attackComplete, setAttackComplete] = useState<boolean>(false)
   const [damageAmount, setDamageAmount] = useState<bigint>()
-  const [isGameOver, setIsGameOver] = useState<boolean>(false);
+  const [isGameInProgress, setIsGameInProgress] = useState<boolean>(false);
 
   const [minted, setMinted] = useState<boolean>(false);
   const [nftData, setNftData] = useState<any>(null);
@@ -90,20 +90,6 @@ const Fight = () => {
     setLoading(true);
     console.log("Defender Address:", newAddress);
     const returnedData = await checkOpponentNFT(newAddress);
-    const getIsGameOver = async () => {
-      try {
-        const isGameOver = await readContract({
-          address: process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string}`,
-          abi: Snowfight.abi,
-          functionName: "getIsGameOver",
-        });
-
-        console.log(isGameOver)
-        setIsGameOver(isGameOver);
-      } catch (error) {
-        console.log(error);
-      }
-    }
     console.log("Returned Data:", returnedData);
     const isInvalidNFT: boolean = !returnedData?.name && !returnedData?.imageURI
     isInvalidNFT ? setDefenderData(null) : setDefenderData(returnedData);
@@ -142,7 +128,6 @@ const Fight = () => {
 
   useEffect(() => {
     setAttacking(false)
-
   }, [defenderData?.hp])
 
   useEffect(() => {
@@ -150,6 +135,17 @@ const Fight = () => {
       setAttacking(false)
     }
   }, [attackResult])
+
+  useEffect(() => {
+    const checkIfGameInProgress = async () => {
+      const gameInProgress = await getIsGameInProgress();
+      if (!gameInProgress) {
+        router.push('/claim')
+      }
+      setIsGameInProgress(gameInProgress)
+    }
+    checkIfGameInProgress()
+  }, [isGameInProgress])
 
   useContractEvent({
     ...contractConfig,
@@ -185,11 +181,6 @@ const Fight = () => {
     },
   } as UseContractEventConfig);
 
-  useEffect(() => {
-    if (isGameOver) {
-      router.push("/claim")
-    }
-  }, [isGameOver])
   useEffect(() => {
     if (attackResult === 3) {
       // run animations
@@ -248,9 +239,16 @@ const Fight = () => {
     fetchData();
   }, [isConnected, attackResult]);
 
-  function endGame(): void {
+  async function endGame() {
+    const { hash } = await writeContract({
+      address: contractAddress as `0x${string}`,
+      abi: Snowfight.abi,
+      functionName: "endGame"
+    });
 
-    throw new Error("Function not implemented.");
+    if (hash) {
+      router.push("/claim")
+    }
   }
 
   return (
@@ -299,8 +297,8 @@ const Fight = () => {
                             disabled={!defenderData}
                           />
                         )}
-                        {!isGameOver && <div className="relative">
-                          <Button text="End Game" className="hover:bg-red-500" onClick={endGame} />
+                        {isGameInProgress && <div className="relative">
+                          <Button text="End Game" className="hover:bg-red-500" onClick={() => endGame()} />
                         </div>}
                       </div>
                     </div>

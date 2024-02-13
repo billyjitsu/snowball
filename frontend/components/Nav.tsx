@@ -3,11 +3,6 @@ import { faBars } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import {
-  writeContract,
-  waitForTransaction
-} from "@wagmi/core";
-import Snowfight from "../contract/contract.json";
 import { useRouter } from "next/navigation";
 import Button from "./Button";
 
@@ -15,24 +10,7 @@ const Nav = () => {
   const router = useRouter();
   const [navbarOpen, setNavbarOpen] = useState(false);
   const [animateHeader, setAnimateHeader] = useState(false);
-  const [gameStarted, setGameStarted] = useState<boolean>(false); // @TODO change this based on game status
 
-  const StartGame = async () => {
-    try {
-      const { hash } = await writeContract({
-        address: process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string}`,
-        abi: Snowfight.abi,
-        functionName: "startGame",
-      });
-      await waitForTransaction({
-        hash,
-      });
-
-      setGameStarted(true)
-    } catch (error) {
-      console.log(error);
-    }
-  };
   useEffect(() => {
     const listener = () => {
       if (window.scrollY > 180) {
@@ -96,15 +74,6 @@ const Nav = () => {
             className="text-blue-500 "
           />
         </button>
-      </div>
-      <div className="flex pl-4">
-        {!gameStarted && <button
-          onClick={() => {
-            StartGame();
-          }}
-          className={`relative bg-gray-500 hover:bg-gray-700 p-[5px] border border-white text-white font-bold rounded my-4 overflow-hidden`}
-
-        >Start Game</button>}
       </div>
       <div
         className={

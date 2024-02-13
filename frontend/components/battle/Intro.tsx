@@ -58,7 +58,6 @@ const Intro: React.FC<IntroProps> = ({ setMinted }) => {
 
   const mintTheNFT = async (nftNum: number) => {
     try {
-      console.log("NFT Number:", nftNum);
       const { hash } = await writeContract({
         address: contractAddress as `0x${string}`,
         abi: Snowfight.abi,
@@ -153,9 +152,6 @@ const Intro: React.FC<IntroProps> = ({ setMinted }) => {
                             </p>
                             {gameStarted &&
                               <Button
-                                onClick={() => {
-                                  mintTheNFT(index);
-                                }}
                                 text={image.buttonText}
                               />
                             }
