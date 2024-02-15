@@ -57,7 +57,7 @@ const Fight = () => {
   const [defenderData, setDefenderData] = useState<any>(null);
   const [hover, setHover] = useState<boolean>(false);
   const [defenderAddress, setDefenderAddress] = useState<string>(
-    "0xe2b8651bF50913057fF47FC4f02A8e12146083B8"
+    ""
   );
   const [attackResult, setAttackResult] = useState<number>(0);
   // 1 = Missed Attack 2 = Successful Attack 3 = NFT Burned
